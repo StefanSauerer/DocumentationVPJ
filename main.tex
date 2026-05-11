@@ -1,0 +1,98 @@
+\documentclass[a4paper,12pt,DIV=12,BCOR=10mm,ngerman,twoside,openright]{scrreprt}	% Druck-Version mit kleinerem Rand für Bindung
+% \documentclass[a4paper,12pt,DIV=12,ngerman]{scrreprt}
+
+\raggedbottom % Fügt dies hinzu, um ungleichmäßige Seitenlängen zu erlauben
+\usepackage{lmodern}
+
+\usepackage[T1]{fontenc}						% europäische Kodierung: Umlaute im Fließtext
+\usepackage[utf8]{inputenc}		 				% Eingabezeichensatz: Umlaute im Code
+\usepackage[ngerman]{babel}						% Deutsches Sprachpaket mit Trennmuster
+\usepackage[babel,german=quotes]{csquotes}		% Deutsche Anführungszeichen
+\usepackage{scrlayer-scrpage}					% Eigene Kopf- und Fußzeilen
+\usepackage{microtype}							% Optischer Randausgleich (vorher cm-super installieren)
+
+
+% Globale Definitionen ------------------------------------------------------------------ %
+\newcommand{\Titel}{Geiler Robi macht noch geilere Stunts}
+\newcommand{\Fak}{Automatisierungstechnik}
+\newcommand{\Datum}{\today}
+\newcommand{\Name}{Stefan Sauerer, Bent Benjo, Lucy Lukas}
+% --------------------------------------------------------------------------------------- %
+
+% Grafiken und Plots -------------------------------------------------------------------- %
+\usepackage{graphicx}							% Abbildungen einbinden
+\usepackage{tikz}								% Vektorgrafiken
+\usepackage{pgfplots}							% Daten plotten
+\pgfplotsset{compat=1.18}
+\usepackage{float}								% Bessere Plazierung der Bilder (H)
+
+% --------------------------------------------------------------------------------------- %
+
+% Tabellen ------------------------------------------------------------------------------ %
+\usepackage{tabularx}							% Tabellen mit fester Breite
+\usepackage{booktabs}							% Abstände in Tabellen
+\usepackage{paralist}							% Flexible Aufzählungen
+\usepackage{ltxtable}							% Lange Tabellen fester Breite
+% --------------------------------------------------------------------------------------- %
+
+% Zitieren ------------------------------------------------------------------------------ %
+												% Optionen -> Erzeugen -> Biber auswählen
+\usepackage[backend=biber]{biblatex}			% Literaturverzeichnis richtig darstellen
+\addbibresource{Literatur.bib}					% BibTex Datei einbinden
+% --------------------------------------------------------------------------------------- %
+\usepackage{amsmath}
+
+\usepackage{hyperref}							% Links in Gliederung einfügen
+
+\usepackage{siunitx}							% Für SI einheiten
+\sisetup{locale = DE}
+
+% Farben definieren (Krones CI Farben ) ------------------------------------------------- %
+\input{colors.tex} % Farben einbinden
+% --------------------------------------------------------------------------------------- %
+
+% Dokumentbeginn
+\begin{document}
+% Kopf- und Fußzeilen =================================================================== %
+\pagestyle{scrplain}
+\clearpairofpagestyles
+\ofoot[\pagemark]{\pagemark}
+\ihead{\headmark}
+\automark{chapter}
+\pagenumbering{roman}
+% ======================================================================================= %
+
+% Titelseite und Eigenständigkeitserklärung --------------------------------------------- %
+\include{_Kapitel/Titelseite}
+% --------------------------------------------------------------------------------------- %
+
+
+% Einleitung ---------------------------------------------------------------------------- %
+\cleardoublepage 
+\pagestyle{scrheadings}
+\pagenumbering{arabic}
+\chapter{Einleitung}
+Hier kommt die Einleitung hin. Siehe \cite{Buch}.
+
+% Hauptteil
+\include{_Kapitel/Konzept}
+\include{_Kapitel/Schnittstellen}
+\include{_Kapitel/Beobachter}
+\include{_Kapitel/Regler}
+\include{_Kapitel/Auswertung}
+\include{_Kapitel/Zusammenfassung}
+
+% Fazit
+\chapter{Fazit}
+Hier kommt das Fazit hin.
+
+\appendix
+
+% Literaturverzeichnis ================================================================== %
+\pagenumbering{Roman}
+\listoffigures									% Abbildungsverzeichnis
+\listoftables									% Tabellenverzeichnis
+\printbibliography								% Literaturverzeichnis
+
+% Dokumentende
+\end{document}
