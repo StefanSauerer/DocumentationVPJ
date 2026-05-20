@@ -1,0 +1,36 @@
+\documentclass{standalone}
+\usepackage{pgfplots}
+\input{../../colors.tex} % Farben einbinden
+
+\pgfplotsset{compat=1.17}
+
+\begin{document}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.8\linewidth,
+            %xmin=0,
+            %xmax=18,
+            %ymin=5000,
+            grid=major,
+            grid style={dashed,gray!30},
+            xlabel={Zeit $t$ [s]},
+            ylabel={Position $x$ [mm]},
+            yticklabel style = {
+                /pgf/number format/fixed, 
+                /pgf/number format/precision=1, 
+                /pgf/number format/fixed zerofill,
+                /pgf/number format/use comma,
+                /pgf/number format/1000 sep={.}
+            },
+            legend style={at={(0.5,-0.2)},anchor=north}
+        ]
+            \addplot[color=SolidBlue, line width=1pt]
+            table[x = t, y = x, col sep=semicolon]{Obs_VariablerGain.csv};
+            \addplot[color=SolidRed, line width=1pt]
+            % Beobachterwerte um 0.1s verschieben (Delay der Kamera)
+            % table[x expr = \thisrow{t} + 0.1, y = reX, col sep=semicolon]{DirekterAusgleich_L1_Ausgleich.csv};
+            table[x = t, y = reX, col sep=semicolon]{Obs_VariablerGain.csv};
+            \legend{Kammeramesswert, Beobachterwert}
+        \end{axis}
+    \end{tikzpicture}
+\end{document}
