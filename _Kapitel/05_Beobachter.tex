@@ -7,20 +7,23 @@
 \end{itemize}
 \section{Beobachtermodell}
 \subsection{Kinematisches Modell}
-Hier dann nochmal auf den Regler eingehen \ref{eq:Koordinatentransformation}
+\begin{itemize}
+    \item Inverse Kinematik von \ref{eq:Koordinatentransformation} => Umrechnung Roboterkoordinaten
+    \item Umrechnung in Weltkoordinaten (wichtig, dass es zyclisch abläuft, da winkeländerung zu änderung in x/y berechnung führt)
+    \item Resultat: Aus Motordaten und Anfangsposition kannn die aktuelle Position im Raum berechnet werden
+\end{itemize}
 \subsection{Beobachterstrucktur}
 \begin{itemize}
     \item Luneburger
     \item EKF
-    \item ...
+    \item Zu beiden Blockschaltbilder erstellen
+    \item Vergleichen und aufzeigen, warum EKF keinen bedeutenden Vorteil gegenüber Luneburger hat (Kamerafehler ist immer ähnlich, daher reicht statischer Gain)
 \end{itemize}
 \section{Parametrierung}
 \begin{itemize}
     \item Einstellen des Gains L
     \item Variabler Gain
-    \item Vielleicht des Kappitel doch gleich mit Resultate zusammenfassen
 \end{itemize}
-\section{Resultate}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_L1_Gesammt.pdf}
