@@ -38,12 +38,14 @@ Daraus folgen die kartesischen Geschwindigkeitskomponenten im Roboterkoordinaten
 \end{equation}
 
 Neben der translatorischen Bewegung trägt jedes Rad ebenfalls zur Rotationsbewegung des Roboters bei. Die Winkelgeschwindigkeit ergibt sich dabei als Summe der Einzelbeiträge, wodurch
+
 \begin{equation}
 \dot{\varphi} = \frac{V_{w1} + V_{w2} + V_{w3}}{3L}
 \end{equation}
 
 resultiert, wobei LLL den Abstand der Räder vom Roboterzentrum beschreibt.
-Durch Zusammenführung der translatorischen und rotatorischen Anteile ergibt sich schließlich die Vorwärtskinematik in kompakter Matrixform:
+Durch Zusammenführung der translatorischen und rotatorischen Anteile ergibt sich schließlich die Vorwärtskinematik in kompakter Matrixform:\\
+\textcolor{red}{Hier nochmal überlegen, ob des wirklich die inverse vom Beobachter is. Beobachter muss richtig sein}\\
 \begin{equation}
     \begin{bmatrix}
         \dot{x}\\
@@ -73,3 +75,4 @@ Diese Gleichung beschreibt die Koordinatentransformation von den Radgeschwindigk
 \section{Positionsfahrweise}
 \subsection{Lageregelung}
 \subsection{Auswertung}
+

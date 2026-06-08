@@ -19,31 +19,36 @@
 
 \refsection{0}
   \datalist[entry]{nty/global//global/global/global}
-    \entry{Buch}{book}{}{}
+    \entry{lunze_regelungstechnik1}{book}{}{}
       \name{author}{1}{}{%
-        {{hash=0cbc6611f5540bd0809a388dc95a615b}{%
-           family={Test},
-           familyi={T\bibinitperiod}}}%
+        {{hash=4229949aab4df09799280ea8dfc50322}{%
+           family={Lunze},
+           familyi={L\bibinitperiod},
+           given={Jan},
+           giveni={J\bibinitperiod}}}%
       }
       \list{publisher}{1}{%
-        {Verlag}%
+        {Springer Vieweg}%
       }
-      \strng{namehash}{0cbc6611f5540bd0809a388dc95a615b}
-      \strng{fullhash}{0cbc6611f5540bd0809a388dc95a615b}
-      \strng{fullhashraw}{0cbc6611f5540bd0809a388dc95a615b}
-      \strng{bibnamehash}{0cbc6611f5540bd0809a388dc95a615b}
-      \strng{authorbibnamehash}{0cbc6611f5540bd0809a388dc95a615b}
-      \strng{authornamehash}{0cbc6611f5540bd0809a388dc95a615b}
-      \strng{authorfullhash}{0cbc6611f5540bd0809a388dc95a615b}
-      \strng{authorfullhashraw}{0cbc6611f5540bd0809a388dc95a615b}
-      \field{sortinit}{T}
-      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \strng{namehash}{4229949aab4df09799280ea8dfc50322}
+      \strng{fullhash}{4229949aab4df09799280ea8dfc50322}
+      \strng{fullhashraw}{4229949aab4df09799280ea8dfc50322}
+      \strng{bibnamehash}{4229949aab4df09799280ea8dfc50322}
+      \strng{authorbibnamehash}{4229949aab4df09799280ea8dfc50322}
+      \strng{authornamehash}{4229949aab4df09799280ea8dfc50322}
+      \strng{authorfullhash}{4229949aab4df09799280ea8dfc50322}
+      \strng{authorfullhashraw}{4229949aab4df09799280ea8dfc50322}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
-      \field{title}{Titel des Buches}
-      \field{year}{777}
+      \field{edition}{10}
+      \field{isbn}{978-3-642-29532-3}
+      \field{title}{Regelungstechnik 1: Systemtheoretische Grundlagen, Analyse und Entwurf einschleifiger Regelungen}
+      \field{year}{2016}
     \endentry
   \enddatalist
+  \missing{Buch}
 \endrefsection
 \endinput
 

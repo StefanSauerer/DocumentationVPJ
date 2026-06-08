@@ -13,23 +13,24 @@
     \item Resultat: Aus Motordaten und Anfangsposition kannn die aktuelle Position im Raum berechnet werden
 \end{itemize}
 Umrechnung in Roboterkoordinaten:
+Die Winkelgeschwindigkeit des Roboters ist in Roboterkoordinaten, als auch Weltkoordinaten gleich definiert, weshlab hier keine Unterscheidung vorgenommen wird.
 \begin{equation}
     \begin{bmatrix}
-        v_x \\
-        v_y \\
+        v_x^{body} \\
+        v_y^{body} \\
         \omega
     \end{bmatrix}
     =
     -
     \begin{bmatrix}
-        \frac{2}{3}\sin(60^\circ) & \frac{2}{3}\sin(180^\circ) & \frac{2}{3}\sin(300^\circ) \\
-        -\frac{2}{3}\cos(60^\circ) & -\frac{2}{3}\cos(180^\circ) & -\frac{2}{3}\cos(300^\circ) \\
-        \frac{1}{3R} & \frac{1}{3R} & \frac{1}{3R}
+        -\frac{\sqrt{3}}{3} & 0 & \frac{\sqrt{3}}{3} \\
+		\frac{1}{3} & -\frac{2}{3} & \frac{1}{3} \\
+		-\frac{1}{3R} & -\frac{1}{3R} & -\frac{1}{3R}
     \end{bmatrix}
     \begin{bmatrix}
-        \omega_1 \\
-        \omega_2 \\
-        \omega_3
+        V_{\omega1} \\
+        V_{\omega2} \\
+        V_{\omega3}
     \end{bmatrix}
 \end{equation}
 Geschwindigkeit in Weltkoordinaten:
@@ -67,6 +68,12 @@ Integration zu Position im Raum:
     \item Zu beiden Blockschaltbilder erstellen
     \item Vergleichen und aufzeigen, warum EKF keinen bedeutenden Vorteil gegenüber Luneburger hat (Kamerafehler ist immer ähnlich, daher reicht statischer Gain)
 \end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{_Bilder/LuneburgerBeobachter_Unbehauen.png}
+    \caption{Zustandsbeobachter nach Luneburger \cite{lunze_regelungstechnik1}}
+    \label{fig:LuneburgerBeobachter_Unbehauen}
+\end{figure}
 \section{Parametrierung}
 \begin{itemize}
     \item Einstellen des Gains L
