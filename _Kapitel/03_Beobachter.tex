@@ -11,7 +11,6 @@
 % -------------------------------------------------------------------------------- %
 \section{Kinematisches Beobachtermodell}
 \begin{itemize}
-    \item Inverse Kinematik von \ref{eq:Koordinatentransformation} => Umrechnung Roboterkoordinaten
     \item Umrechnung in Weltkoordinaten (wichtig, dass es zyclisch abläuft, da winkeländerung zu änderung in x/y berechnung führt)
     \item Resultat: Aus Motordaten und Anfangsposition kannn die aktuelle Position im Raum berechnet werden
 \end{itemize}
@@ -64,9 +63,7 @@
 	\caption{3-Rad-Omniroboter mit Radwinkeln $60^\circ$, $180^\circ$, $300^\circ$}
 \end{figure}
 
-Jedes Rad $w_j$ ist um einen Winkel $\alpha_j$ relativ zum Roboter-Koordinatensystem angeordnet.
-
-\subsection*{1. Zerlegung der Radgeschwindigkeit}
+Jedes Rad $w_j$ ist um einen Winkel $\alpha_j$ relativ zum Roboter-Koordinatensystem angeordnet.\\
 
 Die Rollgeschwindigkeit $V_{wj}$ wirkt immer entlang der $y_{wj}$-Achse des jeweiligen Rades. Durch die freie Querbewegung entsteht zusätzlich eine seitliche (induzierte) $x_{wj}$-Komponente. Diese wird geometrisch aus der Projektion der anderen Räder berechnet. Betrachtet man beispielsweise Rad 1, so induzieren die Bewegungen von Rad 2 und Rad 3 eine seitliche Geschwindigkeit. Diese lässt sich durch Geometrische überlegung der Winkel und der Rollgeschwindigkeiten der anderen Räder bestimmen. Da die Räder im 120°-Winkel zueinander angeordnet sind, Tragen die anderen Räder mit einem Faktor von $cos(120^{\circ}-90^{\circ}) = cos(30^{\circ}) = \frac{\sqrt{3}}{2}$ zur seitlichen Geschwindigkeit bei, abhängig von der Richtung der Rollgeschwindigkeit.\\
 
@@ -80,62 +77,41 @@ Die y-Komponente ist direkt:
 V_{1,y1} = V_{w1}
 \]
 
-\subsection*{2. Allgemeine Transformationsidee}
-
-Jede Radgeschwindigkeit wird durch eine Rotation ins Roboterkoordinatensystem überführt:
-\[
-V_j^{(l)} = R(\alpha_j)\, V_j^{(w)}
-\]
-
-mit
-\[
-R(\alpha_j) =
-\begin{bmatrix}
-\cos\alpha_j & -\sin\alpha_j \\
-\sin\alpha_j & \cos\alpha_j
-\end{bmatrix}
-\]
-
-\subsection*{3. Allgemeine Form der Kinematik}
-
-Die resultierende Translationsgeschwindigkeit ergibt sich aus der Überlagerung aller Beiträge:
-\[
-\vec{v} = \frac{1}{3} \sum_{j=1}^{3} V_j
-\]
-
-Nach Einsetzen der Winkel $\alpha_j$ entstehen die Terme:
+Die resultierende Translationsgeschwindigkeit ergibt sich aus der Überlagerung aller Beiträge. Hierfür muss jedoch die Rotation in das Roboterkoordinatensystem berücksichtigt werden, da die Räder nicht entlang der Hauptachsen des Roboters angeordnet sind.
 
 \begin{align}
 \dot{x} &= \frac{1}{3} \sum_{j=1}^{3} V_{wj} \cdot (-\sin\alpha_j) \\
 \dot{y} &= \frac{1}{3} \sum_{j=1}^{3} V_{wj} \cdot \cos\alpha_j
 \end{align}
-
-\subsection*{4. Allgemeine Matrixform}
+Die Rotationsgeschwindigkeit $\dot{\varphi}$ ergibt sich aus der Summe der Rollgeschwindigkeiten und dem Hebelarm $L$:
+\begin{equation}
+	\dot{\varphi} = \frac{1}{3L} \sum_{j=1}^{3} V_{wj}
+\end{equation}
 
 Damit ergibt sich allgemein:
 
 \[
-\begin{bmatrix}
-\dot{x} \\
-\dot{y} \\
-\dot{\varphi}
-\end{bmatrix}
-=
-\begin{bmatrix}
--\sin\alpha_1 & -\sin\alpha_2 & -\sin\alpha_3 \\
-\cos\alpha_1 & \cos\alpha_2 & \cos\alpha_3 \\
-\frac{1}{L} & \frac{1}{L} & \frac{1}{L}
-\end{bmatrix}
-\cdot \frac{1}{3}
-\begin{bmatrix}
-V_{w1} \\
-V_{w2} \\
-V_{w3}
-\end{bmatrix}
+	\begin{bmatrix}
+	\dot{x} \\
+	\dot{y} \\
+	\dot{\varphi}
+	\end{bmatrix}
+	=
+	\begin{bmatrix}
+	-\sin\alpha_1 & -\sin\alpha_2 & -\sin\alpha_3 \\
+	\cos\alpha_1 & \cos\alpha_2 & \cos\alpha_3 \\
+	\frac{1}{L} & \frac{1}{L} & \frac{1}{L}
+	\end{bmatrix}
+	\cdot \frac{1}{3}
+	\begin{bmatrix}
+	V_{w1} \\
+	V_{w2} \\
+	V_{w3}
+	\end{bmatrix}
 \]
 
-Umrechnung in Roboterkoordinaten:
-Die Winkelgeschwindigkeit des Roboters ist in Roboterkoordinaten, als auch Weltkoordinaten gleich definiert, weshlab hier keine Unterscheidung vorgenommen wird.
+Und konkret für den in diesen Projekt verwendeten Roboter für die Umrechnung der Motordaten in eine Bewegung in Roboterkoordinaten:
+
 \begin{equation}
     \begin{bmatrix}
         v_x^{body} \\
@@ -143,7 +119,6 @@ Die Winkelgeschwindigkeit des Roboters ist in Roboterkoordinaten, als auch Weltk
         \omega
     \end{bmatrix}
     =
-    -
     \begin{bmatrix}
         -\frac{\sqrt{3}}{3} & 0 & \frac{\sqrt{3}}{3} \\
 		\frac{1}{3} & -\frac{2}{3} & \frac{1}{3} \\
@@ -155,7 +130,7 @@ Die Winkelgeschwindigkeit des Roboters ist in Roboterkoordinaten, als auch Weltk
         V_{\omega3}
     \end{bmatrix}
 \end{equation}
-Geschwindigkeit in Weltkoordinaten:
+Die Umrechnung Geschwindigkeit in Weltkoordinaten erfolgt dabei wiefolgt, wobei $\theta$ der aktuelle Winkel des Roboters im Raum ist:
 \begin{equation}
     \begin{bmatrix}
         v_x^{world} \\
@@ -171,7 +146,9 @@ Geschwindigkeit in Weltkoordinaten:
         v_y^{body}
     \end{bmatrix}
 \end{equation}
-Integration zu Position im Raum:
+Die Winkelgeschwindigkeit des Roboters ist in Roboterkoordinaten, als auch Weltkoordinaten gleich definiert, weshlab hier keine Unterscheidung vorgenommen wird.\\
+
+Um schlussendlich die Position im Raum zu berechnen, integriert man die Geschwindigkeiten über die Zeit. Bei einer diskreten Integration mit einem Zeitschritt $\Delta t$ ergibt sich die folgende Formel für die Aktualisierung der Position:
 \begin{equation}
     \mathbf{x}_{k+1} =
     \mathbf{x}_k +
@@ -247,251 +224,3 @@ Integration zu Position im Raum:
     \label{fig:Obs_VarGain_Gesammt}
 \end{figure}
 Is von der Idee her ganz nett, aber kein großer Effekt, da die Kamera, wenn Bild Erkannt, immer ähnlichen Fehler aufweißt. Also lieber statischen Wert tunen.
-\newpage
-Beobachter Code:
-\begin{verbatim}
-VAR_INPUT
-	wheelSpeed : WheelVelocity;
-	cameraData : CameraConnectionUDP;
-	RobotIndex : INT;
-END_VAR
-VAR_OUTPUT
-	eastPos : sPosition := (reX := 0, reY := 0, reWinkel := 0);
-END_VAR
-VAR CONSTANT
-	// === BEOBACHTER-PARAMETER => Großer Gain bedeutet hohes vertrauen in Kamera ===
-	L_Gain					: REAL := 1.0;			// Luenberger Gain für X 		(0.0001-0.1)
-
-	CYCLETIME 				: LREAL := 0.00033333;  // Cycletime des Motortasks
-	CAMERA_DELAY			: REAL 	:= 0.1;
-	BUFFWE_LENGTH			: INT 	:= 500;
-	CAMERA_ERROR_THRESHOLD	: REAL 	:= 5.0;		// Fehlergrenze
-	CAMERA_TIMEOUT			: LREAL := 30.0;		// Timeout in Sekunden
-END_VAR
-
-VAR_STAT
-	bufferWheelSpeed	: ARRAY[0..BUFFWE_LENGTH] OF WheelVelocity;			// Speichern der letzten 300 Motorwerte (entspricht 100 ms -> Delay)
-	prefCamPos			: sPosition;			// vorherige Kamera Position
-	camPos				: sPosition;
-	modelPos			: sPosition;
-	CurrentTime			: LREAL;
-	CameraTimestamp		: LREAL;
-	actualError			: LREAL;				// Kamerafehler
-	bufferIdx			: INT := 0;
-	init				: BOOL;
-END_VAR
-
-// Am anfang einmal die Kammeraposition direkt übertragen
-IF init = TRUE THEN
-	// Wenn ein guter Kamerawert gefunden wurde direkt einmal übertragen
-	IF cameraData.robotPosition[RobotIndex].e < CAMERA_ERROR_THRESHOLD THEN
-		camPos.reX 			:= cameraData.robotPosition[RobotIndex].x;
-		camPos.reY 			:= cameraData.robotPosition[RobotIndex].y;
-		camPos.reWinkel 	:= cameraData.robotPosition[RobotIndex].theta;
-		actualError			:= cameraData.robotPosition[RobotIndex].e;
-		prefCamPos 	:= camPos;
-		modelPos	:= camPos;
-		eastPos		:= camPos;
-		
-		init := FALSE;
-	END_IF
-ELSE
-
-	// Radwerte in FIFO abspeichern
-
-	bufferWheelSpeed[bufferIdx] := wheelSpeed;
-	bufferIdx := (bufferIdx + 1) MOD BUFFWE_LENGTH;
-	
-	// Modell Propagieren
-	propagate_state(
-				X_Start 	:= modelPos,
-				wheelSpeed 	:= wheelSpeed, 
-				P_Start 	:= P_currentState,
-				deltaT 		:= CYCLETIME,
-				X_Predict 	=> modelPos,
-				P_Predict 	=> P_currentState
-			);
-	CurrentTime := CurrentTime + CYCLETIME;	// Zeit weiter laufen lassen, wenn keine Kameradaten kommen
-	
-	// Kameradaten verarbeiten
-
-	// Kammeraposition erst validieren
-	IF cameraData.robotPosition[RobotIndex].e > CAMERA_ERROR_THRESHOLD OR
-		// Prüfen ob neue Kameraposition
-	   ((prefCamPos.reX 	 = cameraData.robotPosition[RobotIndex].x)	AND
-		(prefCamPos.reY 	 = cameraData.robotPosition[RobotIndex].y) 	AND
-		(prefCamPos.reWinkel = cameraData.robotPosition[RobotIndex].theta)) THEN
-			
-			// Falls keine neue Kameraposition erscheint, auch die Kamera vorwärtspropagieren
-			propagate_state(
-					X_Start 	:= camPos,
-					wheelSpeed 	:= wheelSpeed, 
-					P_Start 	:= P_currentState,
-					deltaT 		:= CYCLETIME,
-					X_Predict 	=> camPos,
-					P_Predict 	=> P_currentState
-				);
-	ELSE
-		// Falls Kameraposition gut nehmen
-		camPos.reX 			:= cameraData.robotPosition[RobotIndex].x;
-		camPos.reY 			:= cameraData.robotPosition[RobotIndex].y;
-		camPos.reWinkel 	:= cameraData.robotPosition[RobotIndex].theta;
-		actualError			:= cameraData.robotPosition[RobotIndex].e;
-		CameraTimestamp 	:= (cameraData.HH * 60 + cameraData.MM) * 60 + cameraData.SS;
-		CurrentTime			:= CameraTimestamp;
-		
-		// Abspeichern der actualposition als alte Kameraposition
-
-		prefCamPos := camPos;
-		
-		// Alle Werte zurückrechnen
-		steps := LREAL_TO_INT(CAMERA_DELAY / CYCLETIME);
-		startIdx := bufferIdx - steps;
-		IF startIdx < 0 THEN
-			startIdx := startIdx + BUFFWE_LENGTH;
-		END_IF
-			
-		FOR i := 0 TO steps - 1 DO
-			idx := startIdx + i;
-			IF idx >= BUFFWE_LENGTH THEN
-				idx := idx - BUFFWE_LENGTH;
-			END_IF
-		
-
-			propagate_state(
-				X_Start 	:= camPos,
-				wheelSpeed 	:= bufferWheelSpeed[idx], 
-				P_Start 	:= P_currentState,
-				deltaT 		:= CYCLETIME,
-				X_Predict 	=> camPos,
-				P_Predict 	=> P_currentState
-			);
-		END_FOR	
-	END_IF	
-
-	// LUENBERGER-KORREKTUR: x_hat = x_model + L * (y - x_model)
-
-// 	variableGain := L_Gain * actualError/CAMERA_ERROR_THRESHOLD;
-// 	IF variableGain > 1 OR variableGain < 0.0001 THEN
-// 		variableGain := L_Gain;
-// 	END_IF
-// 	eastPos.reX 	 	:= modelPos.reX 		+ variableGain 	*	(camPos.reX 		- modelPos.reX);
-// 	eastPos.reY 	 	:= modelPos.reY 		+ variableGain 	*	(camPos.reY 		- modelPos.reY);
-// 	eastPos.reWinkel 	:= modelPos.reWinkel 	+ variableGain 	*	 NormalizeAngle(camPos.reWinkel - modelPos.reWinkel);
-
-	eastPos.reX 	 	:= modelPos.reX 		+ L_Gain 	*	(camPos.reX 		- modelPos.reX);
-	eastPos.reY 	 	:= modelPos.reY 		+ L_Gain 	*	(camPos.reY 		- modelPos.reY);
-	eastPos.reWinkel 	:= modelPos.reWinkel 	+ L_Gain 	*	 NormalizeAngle(camPos.reWinkel - modelPos.reWinkel);
-	modelPos := eastPos;
-END_IF
-\end{verbatim}
-\newpage
-GetMinDistance Funktion:
-\begin{verbatim}
-VAR_INPUT
-    velAngle    : LREAL;
-    tolerance   : LREAL;
-END_VAR
-
-FOR i := 1 TO 9 DO
-    sensorAngle := (i - 1) * 40.0;
-
-    diff := sensorAngle - velAngle;
-
-    IF diff > 180.0 THEN
-        diff := diff - 360.0;
-    ELSIF diff < -180.0 THEN
-        diff := diff + 360.0;
-    END_IF;
-
-    IF ABS(diff) <= tolerance THEN
-        minDistance := MIN(minDistance, IrDistanceSensors.distance_mm[i]);
-    END_IF;
-END_FOR;
-
-GetMinDistance := minDistance;
-\end{verbatim}
-\newpage
-Normalize Angle Funktion:
-\begin{verbatim}
-VAR_INPUT
-	angle : LREAL;
-END_VAR
-VAR_OUTPUT
-	NormalizeAngle :LREAL;
-END_VAR
-
-WHILE angle > PI DO
-    angle := angle - (2.0 * PI);
-END_WHILE
-
-WHILE angle < -PI DO
-    angle := angle + (2.0 * PI);
-END_WHILE
-
-NormalizeAngle := angle;
-\end{verbatim}
-\newpage
-Propagate State Funktion:
-\begin{verbatim}
-VAR_INPUT
-	X_Start 	: sPosition;
-    wheelSpeed 	: WheelVelocity;   (* w1,w2,w3 *)
-	P_Start 	: ARRAY[1..9] OF LREAL;
-	deltaT 		: LREAL;
-END_VAR
-
-VAR_OUTPUT
-    X_Predict : sPosition;
-	P_Predict : ARRAY[1..9] OF LREAL;
-END_VAR
-
-
-(*  EKF PREDICTION STEP - 3 Wheel Omni Robot                *)
-(*  Zustandsvektor: x = [posX, posY, yaw]                   *)
-(*  Modell: rein kinematisch                                 *)
-(*  Diskretisierung: Vorwärts-Euler                          *)
-(* ========================================================= *)
-
-X_Start.reWinkel := -X_Start.reWinkel;
-
-(* --- Wheel -> Body --- *)
-bodyVelX := -(2.0/3.0) * (
-			   -SIN(60  * PI/180) * wheelSpeed.wheel1
-			   -SIN(180 * PI/180) * wheelSpeed.wheel2
-			   -SIN(300 * PI/180) * wheelSpeed.wheel3
-		   );
-
-bodyVelY := -(2.0/3.0) * (
-				COS(60  * PI/180) * wheelSpeed.wheel1
-			  + COS(180 * PI/180) * wheelSpeed.wheel2
-			  + COS(300 * PI/180) * wheelSpeed.wheel3
-		   );
-
-yawRate := -(wheelSpeed.wheel1 + wheelSpeed.wheel2 + wheelSpeed.wheel3) 
-		   / (3.0 * GVL_RobotConstant.ROBOT_RADIUS * 1000);// Umrechnung in mm
-
-(* --- Body -> World --- *)
-worldVelX := bodyVelX * COS(X_Start.reWinkel)
-		   - bodyVelY * SIN(X_Start.reWinkel);
-
-worldVelY := bodyVelX * SIN(X_Start.reWinkel)
-		   + bodyVelY * COS(X_Start.reWinkel);
-
-
-(* --- Integration --- *)
-X_Predict.reX 		:= X_Start.reX + deltaT * worldVelX;
-X_Predict.reY 		:= X_Start.reY + deltaT * worldVelY;
-X_Predict.reWinkel 	:= X_Start.reWinkel + deltaT * yawRate;
-
-
-(* --- Winkel normalisieren --- *)
-
-NormalizeAngle(angle := X_Predict.reWinkel, NormalizeAngle => X_Predict.reWinkel);
-
-X_Predict.reWinkel := - X_Predict.reWinkel;
-
-
-P_Predict := P_Start;
-
-\end{verbatim}
