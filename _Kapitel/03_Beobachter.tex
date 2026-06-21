@@ -4,18 +4,16 @@
     \item Warum wird ein Beobachter benötigt?
     \item Entwicklung eines Beobachters zur Schätzung von Zuständen, die nicht direkt messbar sind.
     \item Welche Zuständer werden nicht gemessen?
+    \item Resultat: Aus Motordaten und Anfangsposition kannn die aktuelle Position im Raum berechnet werden
 \end{itemize}
 
 % -------------------------------------------------------------------------------- %
 % Kinematisches Beobachtermodell
 % -------------------------------------------------------------------------------- %
 \section{Kinematisches Beobachtermodell}
-\begin{itemize}
-    \item Umrechnung in Weltkoordinaten (wichtig, dass es zyclisch abläuft, da winkeländerung zu änderung in x/y berechnung führt)
-    \item Resultat: Aus Motordaten und Anfangsposition kannn die aktuelle Position im Raum berechnet werden
-\end{itemize}
+Der Roboter verfügt über drei omnidirektionale Räder, die in einem Winkel von 120° zueinander angeordnet sind. Jedes Rad kann unabhängig angetrieben werden, was dem Roboter eine holonome Bewegungsfreiheit ermöglicht. Der Roboter kann sich also, anders als bei herkömmlichen Fahrzeugen, zu jedem Zeitpunkt und an jeder Position in beliebige Richtungen bewegen. Die Anordnung der Räder ist so gewählt, dass sie symmetrisch um die x-Richtung des Roboters angeordnet sind, was die Berechnung der Bewegungsvektoren vereinfacht. Der Radius des Roboters, gemessen von der Mitte zu den Rädern, beträgt L = 0.15m.
 
-\begin{figure}[h]
+\begin{figure}[H]
 	\centering
 	\begin{tikzpicture}[scale=2]
 
@@ -63,25 +61,11 @@
 	\caption{3-Rad-Omniroboter mit Radwinkeln $60^\circ$, $180^\circ$, $300^\circ$}
 \end{figure}
 
-Jedes Rad $w_j$ ist um einen Winkel $\alpha_j$ relativ zum Roboter-Koordinatensystem angeordnet.\\
-
-Die Rollgeschwindigkeit $V_{wj}$ wirkt immer entlang der $y_{wj}$-Achse des jeweiligen Rades. Durch die freie Querbewegung entsteht zusätzlich eine seitliche (induzierte) $x_{wj}$-Komponente. Diese wird geometrisch aus der Projektion der anderen Räder berechnet. Betrachtet man beispielsweise Rad 1, so induzieren die Bewegungen von Rad 2 und Rad 3 eine seitliche Geschwindigkeit. Diese lässt sich durch Geometrische überlegung der Winkel und der Rollgeschwindigkeiten der anderen Räder bestimmen. Da die Räder im 120°-Winkel zueinander angeordnet sind, Tragen die anderen Räder mit einem Faktor von $cos(120^{\circ}-90^{\circ}) = cos(30^{\circ}) = \frac{\sqrt{3}}{2}$ zur seitlichen Geschwindigkeit bei, abhängig von der Richtung der Rollgeschwindigkeit.\\
-
-Für Rad 1 ergibt sich also:
-\[
-V_{1,x1} = V_{w3}\cos(30^\circ) - V_{w2}\cos(30^\circ) = \frac{\sqrt{3}}{2}(V_{w3} - V_{w2})
-\]
-
-Die y-Komponente ist direkt:
-\[
-V_{1,y1} = V_{w1}
-\]
-
-Die resultierende Translationsgeschwindigkeit ergibt sich aus der Überlagerung aller Beiträge. Hierfür muss jedoch die Rotation in das Roboterkoordinatensystem berücksichtigt werden, da die Räder nicht entlang der Hauptachsen des Roboters angeordnet sind.
+Jedes Rad \(w_j\) ist um einen Winkel \(\alpha_j\) relativ zum Roboter-Koordinatensystem angeordnet. Die Rollgeschwindigkeit\(V_{wj}\) wirkt entlang der jeweiligen Rollrichtung des Rades.Da es sich um omnidirektionale Räder handelt, können Querkräftefrei ausgeglichen werden, sodass jede Radgeschwindigkeit einen Beitrag zur Gesamtbewegung des Roboters liefert. Die resultierende Bewegung des Roboters ergibt sich somit als Überlagerung aller Radgeschwindigkeiten, projiziert auf das Roboter-Koordinatensystem. Dabei trägt jedes Rad entsprechend seiner Orientierung \(\alpha_j\) zur Translations- und Rotationsbewegung bei.
 
 \begin{align}
-\dot{x} &= \frac{1}{3} \sum_{j=1}^{3} V_{wj} \cdot (-\sin\alpha_j) \\
-\dot{y} &= \frac{1}{3} \sum_{j=1}^{3} V_{wj} \cdot \cos\alpha_j
+\dot{x} &= \frac{1}{3} \sum_{j=1}^{3} V_{w,xj} \cdot (-\sin\alpha_j) \\
+\dot{y} &= \frac{1}{3} \sum_{j=1}^{3} V_{w,yj} \cdot \cos\alpha_j
 \end{align}
 Die Rotationsgeschwindigkeit $\dot{\varphi}$ ergibt sich aus der Summe der Rollgeschwindigkeiten und dem Hebelarm $L$:
 \begin{equation}
@@ -120,9 +104,9 @@ Und konkret für den in diesen Projekt verwendeten Roboter für die Umrechnung d
     \end{bmatrix}
     =
     \begin{bmatrix}
-        -\frac{\sqrt{3}}{3} & 0 & \frac{\sqrt{3}}{3} \\
-		\frac{1}{3} & -\frac{2}{3} & \frac{1}{3} \\
-		-\frac{1}{3R} & -\frac{1}{3R} & -\frac{1}{3R}
+        -\frac{\sqrt{3}}{6} & 0 & \frac{\sqrt{3}}{6} \\
+		\frac{1}{6} & -\frac{1}{3} & \frac{1}{6} \\
+		\frac{1}{3R} & \frac{1}{3R} & \frac{1}{3R}
     \end{bmatrix}
     \begin{bmatrix}
         V_{\omega1} \\
