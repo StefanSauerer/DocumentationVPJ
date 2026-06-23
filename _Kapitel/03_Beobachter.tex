@@ -1,12 +1,8 @@
 \chapter{Beobachter}
+Wie in dem Blockschaltbild (ref einfügen) zu sehen wird am Ende nicht die aktuelle Positon des Roboters sondern eine Verzögerte Position gemessen. Diese Verzögerung entsteht durch die Verarbeitung der Kammera-Messwerte sowie der Versendung über MQTT. Zudem kommt ein neuer Messwert immer nur alle 100 ms (Noch prüfen, ob wir wo anders eine Erklärung/Messung dafür anbringen) an, was zu einem Treppenförmigen Signal führt.
 \section{Zielsetzung}
-\begin{itemize}
-    \item Warum wird ein Beobachter benötigt?
-    \item Entwicklung eines Beobachters zur Schätzung von Zuständen, die nicht direkt messbar sind.
-    \item Welche Zuständer werden nicht gemessen?
-    \item Resultat: Aus Motordaten und Anfangsposition kannn die aktuelle Position im Raum berechnet werden
-\end{itemize}
-
+Zur Behebung dieser zwei Probleme soll ein Beobachter verwedet werden. Dieser nimmt als Eingang die Raddaten des Roboters und soll uns dann zu jeder Zeit aus der Anfangsposition und den Umdrehungen der Räder, die Aktuallposition des Roboters Vorwärtspropagieren.\\
+Um dies zu ermöglichen müssen zwei Dinge passieren. Zuersteinmal werden immer die Raddaten der letzten 100ms benötigt, um die Verzögerung der Kamera auszugleichen. Das heißt bei eintreffen eines neuen Messwerts muss die Erhaltene Position um diese Zeitspanne vorwärtberechnet werden. Parallel läuft dauerhaft das Kinematische Modell mit, welches aus der Anfangsposition und den Raddaten kontinuierlich eine Geschätzte Position berechnet. Diese beiden Werte können dann miteinander verglichen werden, um den Fehler zu berechnen und mit einem Gain den Beobachterkreis zu schließen. Dadurch nähert sich schlussendlich der Beobachter und seine Zustandsgrößen dem realen Roboter an.
 % -------------------------------------------------------------------------------- %
 % Kinematisches Beobachtermodell
 % -------------------------------------------------------------------------------- %
@@ -211,7 +207,7 @@ Hier vielleicht noch kurz iwas angeben zu, warum Struktur oder so
 Die erste Abbildung zeigt die klassische Struktur eines Zustandsbeobachters nach Luenberger. Ausgangspunkt ist ein lineares zeitinvariantes System in Zustandsraumdarstellung mit den Matrizen A, B und C. Ziel des Beobachters ist die Rekonstruktion der nicht direkt messbaren Zustände x auf Basis des Eingangssignals u und der gemessenen Ausgangsgröße y. Der Luenberger-Beobachter bildet dazu ein dynamisches System nach, das strukturell weitgehend identisch mit dem Originalsystem ist. Der zentrale Unterschied besteht in der Rückführung des Schätzfehlers, also der Differenz zwischen gemessenem Ausgang y und geschätztem Ausgang $\hat{y}$
 Diese Differenz wird über eine Beobachterverstärkung F (häufig auch L genannt) auf das Beobachtersystem zurückgeführt. Dadurch ergibt sich die typische Beobachterdynamik:
 $\dot{\hat{x}}=A\hat{x}+Bu+F(y-\hat{y})$
-mit $\hat{y}=C\dot\hat{x}$.
+mit $\hat{y}=C\cdot\hat{x}$.
 Die Aufgabe bei der Auslegung des Luenberger-Beobachters besteht darin, die Verstärkungsmatrix F so zu wählen, dass der Schätzfehler $e=x-\hat{x}$ asymptotisch gegen null konvergiert. 
 \begin{figure}[H]
     \centering
@@ -238,51 +234,63 @@ P_{k+1} &= \left( I - K_{k+1} C \right) P_{k+1}^-
 Der Kalman-Filter bestimmt den Verstärkungsfaktor $K_{k+1}$ optimal im Sinne der Minimierung der Schätzfehlerkovarianz. Dabei werden die statistischen Eigenschaften des Prozessrauschens ($Q$) und des Messrauschens ($R$) explizit berücksichtigt.\\
 Der wesentliche Unterschied zwischen dem Luenberger-Beobachter und dem Kalman-Filter liegt in der Auslegung der Beobachterverstärkung:
 Beim Luenberger-Beobachter wird die Matrix L deterministisch gewählt, typischerweise über Polvorgabe. Rauscheinflüsse werden nicht explizit berücksichtigt. Beim Kalman-Filter ergibt sich der Verstärkungsfaktor als Lösung eines Optimierungsproblems und wird in jedem Zeitschritt neu berechnet. Dabei werden Unsicherheiten systematisch über Kovarianzmatrizen modelliert.\\
-
+Hier noch argumentiren, warum der Kalman-Filter keinen Vorteil bringt. Kammerafehler ändert sich nur wenig usw...
 % -------------------------------------------------------------------------------- %
-% Parametrierung/Auswertung
+% Modell Validierung
 % -------------------------------------------------------------------------------- %
-\section{Parametrierung/Auswertung}
-\begin{itemize}
-    \item Einstellen des Gains L
-    \item Variabler Gain
-\end{itemize}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_L1_Gesammt.pdf}
-    \caption{Beobachter mit direktem Ausgleich Gesammt}
-    \label{fig:Obs_L1_Gesammt}
-\end{figure}
+\section{Modell Validierung}
+Um das Beobachter Modell und dessen Implementierung zu validieren, ist es am einfachsten zuerst die Normalfahrt zu betrachten. Also eine Fahrt in der zyklich neue Kamera-Werte ankommen. Der Verlauf dieser Messwerte ist in Abbildung \ref{fig:Obs_L1_Normalfahrt}, beispielhaft für die x-Position des Roboters, in Blau dargestellt.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_L1_Normalfahrt.pdf}
     \caption{Beobachter mit direktem Ausgleich Normalfahrt}
     \label{fig:Obs_L1_Normalfahrt}
 \end{figure}
+Betrachtet man im Gegensatz zur blauen Kurve die roten, vom Beobachter berechneten Werte und vergleicht diese mit den in der Zielsetzung beschriebenen Anforderungen, lässt sich ein nahezu ideales Verhalten erkennen. Die Position wird um 100ms vorwärts propagiert, und zwischen den Sprüngen wird die Kurve geglättet.\\
+
+Noch deutlicher wird dies, wenn man die Beobachterkurve künstlich um 100ms verzögert. Dies ist in Abbildung \ref{fig:Obs_L1_NormalfahrtVerschoben} dargestellt. Hier ist gut zu erkennen, wie die Kamera bei jedem neuen Messwert wieder exakt auf die kontinuierliche Kurve des Beobachters springt.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_L1_NormalfahrtVerschoben.pdf}
     \caption{Beobachter mit direktem Ausgleich Normalfahrt Verschoben}
     \label{fig:Obs_L1_NormalfahrtVerschoben}
 \end{figure}
+% -------------------------------------------------------------------------------- %
+% Regler Parametrierung
+% -------------------------------------------------------------------------------- %
+\section{Regler Paremetrierung}
+\begin{itemize}
+    \item Noch Bents Punkt mit dem Ausgleich anbringen (Wo geht des eigentlich genau zurück/ Was sin des für Einheiten)
+\end{itemize}
+Für die Regler Parametrierung soll nun eine Fahrt betrachtet werden, in der der Roboter eine längere Zeit keinen Kammera-Messwert bekommt und somit das Modell langsam von der Realität abdriftet. In Abbildung \ref{fig:Obs_L1_Gesammt} ist diese Messung einmal im gesammten dargestellt. Hierfür wurde während der Fahrt in x-Richtung der Navigationscode des Roboters für etwa 12s abgedeckt.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_L1_Gesammt.pdf}
+    \caption{Beobachter mit direktem Ausgleich Gesammt}
+    \label{fig:Obs_L1_Gesammt}
+\end{figure}
+In Abbildung \ref{fig:Obs_L1_Ausgleich} ist der Zeitberich um den Ausgleich nochmal vergrößert dargestellt. Wie man hier gut erkennen kann, wurde der Gain der Rückführung hier auf eins gesetzt, was besonders durch die schnellen Zycluszeiten des Programms zu einem quasi direkten Ausgleich bei erhalt eines neuen Kammeramesswerts führt.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_L1_Ausgleich.pdf}
     \caption{Beobachter mit direktem Ausgleich}
     \label{fig:Obs_L1_Ausgleich}
 \end{figure}
-
+Betrachtet man den gleichen Versuch nochmal für einen deutlich geringere Verstärkung, so kann man in Abbildung \ref{fig:Obs_L01_Ausgleich}, für L = 0.01 eine Annäherung an den Kammerawert erkennen.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_L01_Ausgleich.pdf}
     \caption{Beobachter mit langsamen Ausgleich}
     \label{fig:Obs_L01_Ausgleich}
 \end{figure}
+Zu guter letzt soll in Abbildung \ref{fig:Obs_VarGain_Gesammt} nochmal geprüft werden, ob mit einem vom Kamerafehler abhängigen variablen Verstärkung eine weitere Verbesserung des Verhaltens erreicht werden kann. Die Idee dahinter ist ein deutlich vereinfachter Grundgedanke des Kalman-Filters. Wenn der Messwert gut ist, soll sich mehr auf die Kammera verlassen werden und sonst mehr auf das Modell. Da der Kamerafehler direkt mitgeliefert wird ist auch nur noch eine sinnvolle Normierung um diesen Wert einzuführen.\\
 
+Hier noch ne Formel für die Normierung
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_VarGain_Gesammt.pdf}
     \caption{Beobachter mit variablen Gain}
     \label{fig:Obs_VarGain_Gesammt}
 \end{figure}
-Is von der Idee her ganz nett, aber kein großer Effekt, da die Kamera, wenn Bild Erkannt, immer ähnlichen Fehler aufweißt. Also lieber statischen Wert tunen.
+Der Ansatz ist grundsätzlich sinnvoll, zeigt in der Praxis jedoch nur einen geringen Effekt. Dies liegt daran, dass die Kamera bei jeder erneuten Bilderkennung einen sehr ähnlichen systematischen Fehler aufweist. Eine dynamische Korrektur bringt daher nur begrenzte Verbesserungen.
+Aus diesem Grund erscheint es zielführender, den Fehler durch Anpassung eines statischen Parameters zu kompensieren. Durch ein gezieltes Tuning dieses festen Wertes kann eine vergleichbare oder sogar stabilere Verbesserung erzielt werden, ohne die zusätzliche Komplexität einer dynamischen Anpassung.
