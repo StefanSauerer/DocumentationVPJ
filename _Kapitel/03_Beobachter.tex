@@ -239,9 +239,8 @@ Noch deutlicher wird dies, wenn man die Beobachterkurve künstlich um 100ms verz
 % -------------------------------------------------------------------------------- %
 % Regler Parametrierung
 % -------------------------------------------------------------------------------- %
-\section{Regler Paremetrierung}
+\section{Beobachterverstärkung Paremetrierung}
 \textcolor{red}{Noch Bents Punkt mit dem Ausgleich anbringen (Wo geht des eigentlich genau zurück/ Was sin des für Einheiten)}\\
-
 Für die Regler Parametrierung soll nun eine Fahrt betrachtet werden, in der der Roboter eine längere Zeit keinen Kammera-Messwert bekommt und somit das Modell langsam von der Realität abdriftet. In Abbildung \ref{fig:Obs_L1_Gesammt} ist diese Messung einmal im gesammten dargestellt. Hierfür wurde während der Fahrt in x-Richtung der Navigationscode des Roboters für etwa 12s abgedeckt.
 \begin{figure}[H]
     \centering
@@ -265,7 +264,20 @@ Betrachtet man den gleichen Versuch nochmal für einen deutlich geringere Verst�
 \end{figure}
 Zu guter letzt soll in Abbildung \ref{fig:Obs_VarGain_Gesammt} nochmal geprüft werden, ob mit einem vom Kamerafehler abhängigen variablen Verstärkung eine weitere Verbesserung des Verhaltens erreicht werden kann. Die Idee dahinter ist ein deutlich vereinfachter Grundgedanke des Kalman-Filters. Wenn der Messwert gut ist, soll sich mehr auf die Kammera verlassen werden und sonst mehr auf das Modell. Da der Kamerafehler direkt mitgeliefert wird ist auch nur noch eine sinnvolle Normierung um diesen Wert einzuführen.\\
 
-\textcolor{red}{Hier noch ne Formel für die Normierung}
+
+% CAMERA_ERROR_THRESHOLD	: REAL 	:= 5.0;		// Fehlergrenze
+% variableGain := L_Gain * actualError/CAMERA_ERROR_THRESHOLD;
+% IF variableGain > 1 OR variableGain < 0.0001 THEN
+% 	variableGain := L_Gain;
+% END_IF
+\begin{equation}
+    E_{\text{th}} = 5.0
+    \text{variableGain} =
+    \begin{cases}
+    L_{\text{Gain}} \cdot \dfrac{e}{E_{\text{th}}}, & \text{wenn } 0.0001 \le L_{\text{Gain}} \cdot \dfrac{e}{E_{\text{th}}} \le 1 \\
+    L_{\text{Gain}}, & \text{sonst}
+    \end{cases}
+\end{equation}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_VarGain_Gesammt.pdf}
