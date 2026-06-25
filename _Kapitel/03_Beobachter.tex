@@ -58,30 +58,35 @@ Wie in Abbildung \ref{fig:Grafik-Omniroboter} zu sehen, sind die Geschwindigkeit
 	\caption{3-Rad-Omniroboter mit Radwinkeln $60^\circ$, $180^\circ$, $300^\circ$}
     \label{fig:Grafik-Omniroboter}
 \end{figure}
-Um die Gesamtgeschwindigkeit des Roboters zu berechnen, müssen die Beiträge aller drei Räder berücksichtigt und in das globale Koordinatensystem transformiert werden.Hierfür wird zunächst die Geschwindigkeit jedes Rades im lokalen Radkoordinatensystem $(x_j, y_j)$ beschrieben, wobei die erste Zeile die Querkomponente und die zweite Zeile die direkte Rollkomponente darstellt. Die Querkomponente entsteht durch die Kopplung mit den anderen Rädern und lässt sich berechnen, indem die Geschwindigkeitsvektoren der anderen Räder entsprechend ihrer Anordnung und der Geometrie des Roboters gewichtet werden. Da die Räder in einem Winkel von 120° zueinander angeordnet sind, ergibt sich für die Querkomponente ein Faktor von $1/\sqrt{3}$(Vielleicht hier einfach Quelle angeben und nicht erklären?):
+Um die Gesamtgeschwindigkeit des Roboters zu berechnen, müssen die Beiträge aller drei Räder berücksichtigt und in das globale Koordinatensystem transformiert werden.Hierfür wird zunächst die Geschwindigkeit jedes Rades im lokalen Radkoordinatensystem $(x_j, y_j)$ beschrieben, wobei die erste Zeile die Querkomponente und die zweite Zeile die direkte Rollkomponente darstellt. Die Querkomponente entsteht durch die Kopplung mit den anderen Rädern und lässt sich berechnen, indem die Geschwindigkeitsvektoren der anderen Räder entsprechend ihrer Anordnung und der Geometrie des Roboters gewichtet werden. Da die Räder in einem Winkel von 120° zueinander angeordnet sind, ergibt sich für die Querkomponente ein Faktor von $1/\sqrt{3}$\textcolor{red}{(Vielleicht hier einfach Quelle angeben und nicht erklären?)}:
 
-Hier noch erklären, wo 1/sqrt(3) herkommt. 
-\begin{align}
-\vec{V}_1^{(w)} &= 
-\begin{bmatrix}
-\frac{1}{\sqrt{3}}V_{w3} - \frac{1}{\sqrt{3}}V_{w2} \\
-V_{w1}
-\end{bmatrix} \\
+\begin{equation}
+    \vec{V}_1^{wheel} = 
+    \begin{bmatrix}
+    \frac{V_{w3}}{\sqrt{3}} - \frac{V_{w2}}{\sqrt{3}} \\
+    V_{w1}
+    \end{bmatrix}
+\end{equation}
 \\
-\vec{V}_2^{(w)} &= 
-\begin{bmatrix}
-\frac{1}{\sqrt{3}}V_{w1} - \frac{1}{\sqrt{3}}V_{w3} \\
-V_{w2}
-\end{bmatrix} \\
+\begin{equation}
+    \vec{V}_2^{wheel} = 
+    \begin{bmatrix}
+    \frac{V_{w1}}{\sqrt{3}} - \frac{V_{w3}}{\sqrt{3}}\\
+    V_{w2}
+    \end{bmatrix} \\
+\end{equation}
 \\
-\vec{V}_3^{(w)} &= 
-\begin{bmatrix}
-\frac{1}{\sqrt{3}}V_{w2} - \frac{1}{\sqrt{3}}V_{w1} \\
-V_{w3}
-\end{bmatrix}
-\end{align}
+\begin{equation}
+    \vec{V}_3^{wheel} = 
+    \begin{bmatrix}
+    \frac{V_{w2}}{\sqrt{3}} - \frac{V_{w1}}{\sqrt{3}}\\
+    V_{w3}
+    \end{bmatrix}
+\end{equation}
+
 Die zweite Zeile beschreibt die Geschwindigkeit entlang der Rollrichtung des jeweiligen Rades, während die erste Zeile die Querkomponente darstellt, die durch die Kopplung mit den anderen Rädern entsteht.
 Diese lokalen Geschwindigkeiten werden dann, über die Rotationsmatrix, in das Roboterkoordinatensystem transformiert:
+\textcolor{red}{Hier nochmal überlegen, Wie und ob man Marixes anders darstellt}\\
 
 \begin{equation}
 \vec{V}_j = R(\alpha_j)\,\vec{V}_j^{(w)}
@@ -101,8 +106,8 @@ Die Gesamtgeschwindigkeit des Roboters ergibt sich als Mittelwert aller drei Rä
 
 \begin{equation}
 \begin{bmatrix}
-\dot{x} \\
-\dot{y}
+v_x^{body} \\
+v_y^{body} \\
 \end{bmatrix}
 =
 \frac{1}{3} \sum_{j=1}^{3}
@@ -115,35 +120,10 @@ Und die Rotationsgeschwindigkeit ist:
 \dot{\varphi} = \frac{1}{3L}(V_{w1} + V_{w2} + V_{w3})
 \end{equation}
 
-Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen die Winkelwerte $\alpha_1 = 60^\circ$, $\alpha_2 = 180^\circ$ und $\alpha_3 = 300^\circ$ eingesetzt werden. Dies führt in den Rotationsmatrizen zu folgenden spezifischen Werten:
+Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen die Winkelwerte $\alpha_1 = 60^\circ$, $\alpha_2 = 180^\circ$ und $\alpha_3 = 300^\circ$ eingesetzt werden.
 
-\begin{align*}
-R(60^\circ) &= \begin{bmatrix} \frac{1}{2} & -\frac{\sqrt{3}}{2} \\ \frac{\sqrt{3}}{2} & \frac{1}{2} \end{bmatrix}, \quad
-R(180^\circ) = \begin{bmatrix} -1 & 0 \\ 0 & -1 \end{bmatrix}, \quad
-R(300^\circ) = \begin{bmatrix} \frac{1}{2} & \frac{\sqrt{3}}{2} \\ -\frac{\sqrt{3}}{2} & \frac{1}{2} \end{bmatrix}
-\end{align*}
 Durch Einsetzen dieser Werte in die Rotationsmatrizen und Ausmultiplizieren der Summe ergibt sich die folgende kompakte Matrixdarstellung:
 
-\[
-\begin{bmatrix}
-\dot{x} \\
-\dot{y} \\
-\dot{\varphi}
-\end{bmatrix}
-=
-\begin{bmatrix}
--\frac{2}{3} & \frac{1}{3} & \frac{1}{3} \\
-\frac{\sqrt{3}}{3} & -\frac{\sqrt{3}}{3} & 0 \\
-\frac{1}{3L} & \frac{1}{3L} & \frac{1}{3L}
-\end{bmatrix}
-\begin{bmatrix}
-V_{w1} \\
-V_{w2} \\
-V_{w3}
-\end{bmatrix}
-\]
-
-Nochmal vergleichen mit dem, was ich tatsächlich im Projekt verwendet hab:
 \begin{equation}
     \begin{bmatrix}
         v_x^{body} \\
@@ -234,7 +214,8 @@ P_{k+1} &= \left( I - K_{k+1} C \right) P_{k+1}^-
 Der Kalman-Filter bestimmt den Verstärkungsfaktor $K_{k+1}$ optimal im Sinne der Minimierung der Schätzfehlerkovarianz. Dabei werden die statistischen Eigenschaften des Prozessrauschens ($Q$) und des Messrauschens ($R$) explizit berücksichtigt.\\
 Der wesentliche Unterschied zwischen dem Luenberger-Beobachter und dem Kalman-Filter liegt in der Auslegung der Beobachterverstärkung:
 Beim Luenberger-Beobachter wird die Matrix L deterministisch gewählt, typischerweise über Polvorgabe. Rauscheinflüsse werden nicht explizit berücksichtigt. Beim Kalman-Filter ergibt sich der Verstärkungsfaktor als Lösung eines Optimierungsproblems und wird in jedem Zeitschritt neu berechnet. Dabei werden Unsicherheiten systematisch über Kovarianzmatrizen modelliert.\\
-Hier noch argumentiren, warum der Kalman-Filter keinen Vorteil bringt. Kammerafehler ändert sich nur wenig usw...
+\textcolor{red}{Hier noch argumentiren, warum der Kalman-Filter keinen Vorteil bringt. Kammerafehler ändert sich nur wenig usw...\\
+Außerdem Kalman teil noch überarbeiten}
 % -------------------------------------------------------------------------------- %
 % Modell Validierung
 % -------------------------------------------------------------------------------- %
@@ -259,9 +240,8 @@ Noch deutlicher wird dies, wenn man die Beobachterkurve künstlich um 100ms verz
 % Regler Parametrierung
 % -------------------------------------------------------------------------------- %
 \section{Regler Paremetrierung}
-\begin{itemize}
-    \item Noch Bents Punkt mit dem Ausgleich anbringen (Wo geht des eigentlich genau zurück/ Was sin des für Einheiten)
-\end{itemize}
+\textcolor{red}{Noch Bents Punkt mit dem Ausgleich anbringen (Wo geht des eigentlich genau zurück/ Was sin des für Einheiten)}\\
+
 Für die Regler Parametrierung soll nun eine Fahrt betrachtet werden, in der der Roboter eine längere Zeit keinen Kammera-Messwert bekommt und somit das Modell langsam von der Realität abdriftet. In Abbildung \ref{fig:Obs_L1_Gesammt} ist diese Messung einmal im gesammten dargestellt. Hierfür wurde während der Fahrt in x-Richtung der Navigationscode des Roboters für etwa 12s abgedeckt.
 \begin{figure}[H]
     \centering
@@ -285,7 +265,7 @@ Betrachtet man den gleichen Versuch nochmal für einen deutlich geringere Verst�
 \end{figure}
 Zu guter letzt soll in Abbildung \ref{fig:Obs_VarGain_Gesammt} nochmal geprüft werden, ob mit einem vom Kamerafehler abhängigen variablen Verstärkung eine weitere Verbesserung des Verhaltens erreicht werden kann. Die Idee dahinter ist ein deutlich vereinfachter Grundgedanke des Kalman-Filters. Wenn der Messwert gut ist, soll sich mehr auf die Kammera verlassen werden und sonst mehr auf das Modell. Da der Kamerafehler direkt mitgeliefert wird ist auch nur noch eine sinnvolle Normierung um diesen Wert einzuführen.\\
 
-Hier noch ne Formel für die Normierung
+\textcolor{red}{Hier noch ne Formel für die Normierung}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_VarGain_Gesammt.pdf}
