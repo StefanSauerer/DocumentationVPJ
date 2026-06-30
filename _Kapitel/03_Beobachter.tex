@@ -1,8 +1,8 @@
 \chapter{Beobachter}
-Wie in dem Blockschaltbild (ref einfügen) zu sehen wird am Ende nicht die aktuelle Positon des Roboters sondern eine Verzögerte Position gemessen. Diese Verzögerung entsteht durch die Verarbeitung der Kammera-Messwerte sowie der Versendung über MQTT. Zudem kommt ein neuer Messwert immer nur alle 100 ms (Noch prüfen, ob wir wo anders eine Erklärung/Messung dafür anbringen) an, was zu einem Treppenförmigen Signal führt.
+Wie in dem Blockschaltbild (ref einfügen) zu sehen wird am Ende nicht die aktuelle Positon des Roboters sondern eine Verzögerte Position gemessen. Diese Verzögerung entsteht durch die Verarbeitung der Kammera-Messwerte sowie der Versendung über MQTT. Zudem kommt ein neuer Messwert immer nur alle \SI{100}{\milli\second} (Noch prüfen, ob wir wo anders eine Erklärung/Messung dafür anbringen) an, was zu einem Treppenförmigen Signal führt.
 \section{Zielsetzung}
 Zur Behebung dieser zwei Probleme soll ein Beobachter verwedet werden. Dieser nimmt als Eingang die Raddaten des Roboters und soll uns dann zu jeder Zeit aus der Anfangsposition und den Umdrehungen der Räder, die Aktuallposition des Roboters Vorwärtspropagieren.\\
-Um dies zu ermöglichen müssen zwei Dinge passieren. Zuersteinmal werden immer die Raddaten der letzten 100ms benötigt, um die Verzögerung der Kamera auszugleichen. Das heißt bei eintreffen eines neuen Messwerts muss die Erhaltene Position um diese Zeitspanne vorwärtberechnet werden. Parallel läuft dauerhaft das Kinematische Modell mit, welches aus der Anfangsposition und den Raddaten kontinuierlich eine Geschätzte Position berechnet. Diese beiden Werte können dann miteinander verglichen werden, um den Fehler zu berechnen und mit einem Gain den Beobachterkreis zu schließen. Dadurch nähert sich schlussendlich der Beobachter und seine Zustandsgrößen dem realen Roboter an.
+Um dies zu ermöglichen müssen zwei Dinge passieren. Zuersteinmal werden immer die Raddaten der letzten \SI{100}{\milli\second} benötigt, um die Verzögerung der Kamera auszugleichen. Das heißt bei eintreffen eines neuen Messwerts muss die Erhaltene Position um diese Zeitspanne vorwärtberechnet werden. Parallel läuft dauerhaft das Kinematische Modell mit, welches aus der Anfangsposition und den Raddaten kontinuierlich eine Geschätzte Position berechnet. Diese beiden Werte können dann miteinander verglichen werden, um den Fehler zu berechnen und mit einem Gain den Beobachterkreis zu schließen. Dadurch nähert sich schlussendlich der Beobachter und seine Zustandsgrößen dem realen Roboter an.
 % -------------------------------------------------------------------------------- %
 % Kinematisches Beobachtermodell
 % -------------------------------------------------------------------------------- %
@@ -85,17 +85,16 @@ Um die Gesamtgeschwindigkeit des Roboters zu berechnen, müssen die Beiträge al
 \end{equation}
 
 Die zweite Zeile beschreibt die Geschwindigkeit entlang der Rollrichtung des jeweiligen Rades, während die erste Zeile die Querkomponente darstellt, die durch die Kopplung mit den anderen Rädern entsteht.
-Diese lokalen Geschwindigkeiten werden dann, über die Rotationsmatrix, in das Roboterkoordinatensystem transformiert:
-\textcolor{red}{Hier nochmal überlegen, Wie und ob man Marixes anders darstellt}\\
+Diese lokalen Geschwindigkeiten werden dann, über die Rotationsmatrix, in das Roboterkoordinatensystem transformiert:\\
 
 \begin{equation}
-\vec{V}_j = R(\alpha_j)\,\vec{V}_j^{(w)}
+\vec{V}_j = \mathbf{R(\alpha_j)}\,\vec{V}_j^{(w)}
 \end{equation}
 
 mit der Rotationsmatrix:
 
 \begin{equation}
-R(\alpha_j) =
+\mathbf{R(\alpha_j)} =
 \begin{bmatrix}
 \cos\alpha_j & -\sin\alpha_j \\
 \sin\alpha_j & \cos\alpha_j
@@ -111,7 +110,7 @@ v_y^{body} \\
 \end{bmatrix}
 =
 \frac{1}{3} \sum_{j=1}^{3}
-R(\alpha_j)\,\vec{V}_j^{(w)}
+\mathbf{R(\alpha_j)}\,\vec{V}_j^{(w)}
 \end{equation}
 
 Und die Rotationsgeschwindigkeit ist:
@@ -163,9 +162,18 @@ Die Winkelgeschwindigkeit des Roboters ist in Roboterkoordinaten, als auch Weltk
 
 Um schlussendlich die Position im Raum zu berechnen, integriert man die Geschwindigkeiten über die Zeit. Bei einer diskreten Integration mit einem Zeitschritt $\Delta t$ ergibt sich die folgende Formel für die Aktualisierung der Position:
 \begin{equation}
-    \mathbf{x}_{k+1} =
-    \mathbf{x}_k +
-    \Delta t \cdot
+    \begin{bmatrix}
+        p_{x+1}^{world} \\
+        p_{y+1}^{world} \\
+        p_{\varphi+1}
+    \end{bmatrix}
+    =
+    \begin{bmatrix}
+        p_{x}^{world} \\
+        p_{y}^{world} \\
+        p_{\varphi}
+    \end{bmatrix} 
+    + \Delta t \cdot
     \begin{bmatrix}
         v_x^{world} \\
         v_y^{world} \\
@@ -185,17 +193,17 @@ Hier vielleicht noch kurz iwas angeben zu, warum Struktur oder so
     \label{fig:LuneburgerBeobachter_Unbehauen}
 \end{figure}
 Die erste Abbildung zeigt die klassische Struktur eines Zustandsbeobachters nach Luenberger. Ausgangspunkt ist ein lineares zeitinvariantes System in Zustandsraumdarstellung mit den Matrizen A, B und C. Ziel des Beobachters ist die Rekonstruktion der nicht direkt messbaren Zustände x auf Basis des Eingangssignals u und der gemessenen Ausgangsgröße y. Der Luenberger-Beobachter bildet dazu ein dynamisches System nach, das strukturell weitgehend identisch mit dem Originalsystem ist. Der zentrale Unterschied besteht in der Rückführung des Schätzfehlers, also der Differenz zwischen gemessenem Ausgang y und geschätztem Ausgang $\hat{y}$
-Diese Differenz wird über eine Beobachterverstärkung F (häufig auch L genannt) auf das Beobachtersystem zurückgeführt. Dadurch ergibt sich die typische Beobachterdynamik:
+Diese Differenz wird über eine Beobachterverstärkung F (im Folgenden L genannt) auf das Beobachtersystem zurückgeführt. Dadurch ergibt sich die typische Beobachterdynamik:
 $\dot{\hat{x}}=A\hat{x}+Bu+F(y-\hat{y})$
 mit $\hat{y}=C\cdot\hat{x}$.
-Die Aufgabe bei der Auslegung des Luenberger-Beobachters besteht darin, die Verstärkungsmatrix F so zu wählen, dass der Schätzfehler $e=x-\hat{x}$ asymptotisch gegen null konvergiert. 
+Die Aufgabe bei der Auslegung des Luenberger-Beobachters besteht darin, die Verstärkungsmatrix L so zu wählen, dass der Schätzfehler $e=x-\hat{x}$ asymptotisch gegen null konvergiert. Anschaulich bedeutet dies, dass sich der Zustandsbeobachter an unser reales Modell möglichst gut annähert.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Bilder/KalmanFilter.png}
     \caption{Konzept Kalman-Filter}
     \label{fig:KalmanFilter}
 \end{figure}
-Die zweite Abbildung zeigt das Konzept des Kalman-Filters, das als Erweiterung des Luenberger-Beobachters interpretiert werden kann. Auch hier erfolgt eine Zustandsrekonstruktion, jedoch auf Basis einer stochastischen Beschreibung von Prozess- und Messrauschen. Der Kalman-Filter erweitert die Beobachterstruktur um eine stochastische Beschreibung von Prozess- und Messrauschen. Die Zustandsrekonstruktion erfolgt in zwei Schritten. Dabei wird in der Prädiktion auf Basis des Systemmodells der Zustand sowie die Fehlerkovarianz vorhergesagt:
+Die Abbildung \ref{fig:KalmanFilter} zeigt das vereinfachte Konzept des Kalman-Filters, das im Folgenden als Erweiterung des Luenberger-Beobachters unertersucht werden soll. Auch hier erfolgt eine Zustandsrekonstruktion, jedoch auf Basis einer stochastischen Beschreibung von Prozess- und Messrauschen. Der Kalman-Filter erweitert die Beobachterstruktur um eine stochastische Beschreibung von Prozess- und Messrauschen. Die Zustandsrekonstruktion erfolgt in zwei Schritten. Dabei wird in der Prädiktion auf Basis des Systemmodells der Zustand sowie die Fehlerkovarianz vorhergesagt:
 \begin{align}
 \hat{x}_{k+1}^- &= A \hat{x}_k + B u_k \\
 P_{k+1}^- &= A P_k A^\top + Q
@@ -212,10 +220,8 @@ Damit werden Zustandsschätzung und Kovarianz aktualisiert:
 P_{k+1} &= \left( I - K_{k+1} C \right) P_{k+1}^-
 \end{align}
 Der Kalman-Filter bestimmt den Verstärkungsfaktor $K_{k+1}$ optimal im Sinne der Minimierung der Schätzfehlerkovarianz. Dabei werden die statistischen Eigenschaften des Prozessrauschens ($Q$) und des Messrauschens ($R$) explizit berücksichtigt.\\
-Der wesentliche Unterschied zwischen dem Luenberger-Beobachter und dem Kalman-Filter liegt in der Auslegung der Beobachterverstärkung:
-Beim Luenberger-Beobachter wird die Matrix L deterministisch gewählt, typischerweise über Polvorgabe. Rauscheinflüsse werden nicht explizit berücksichtigt. Beim Kalman-Filter ergibt sich der Verstärkungsfaktor als Lösung eines Optimierungsproblems und wird in jedem Zeitschritt neu berechnet. Dabei werden Unsicherheiten systematisch über Kovarianzmatrizen modelliert.\\
-\textcolor{red}{Hier noch argumentiren, warum der Kalman-Filter keinen Vorteil bringt. Kammerafehler ändert sich nur wenig usw...\\
-Außerdem Kalman teil noch überarbeiten}
+Der wesentliche Unterschied zwischen dem Luenberger-Beobachter und dem Kalman-Filter liegt in der Auslegung der Beobachterverstärkung. Beim Luenberger-Beobachter wird die Matrix L deterministisch gewählt, typischerweise über Polvorgabe. Rauscheinflüsse werden nicht explizit berücksichtigt. Beim Kalman-Filter ergibt sich der Verstärkungsfaktor als Lösung eines Optimierungsproblems und wird in jedem Zeitschritt neu berechnet. Dabei werden Unsicherheiten systematisch über Kovarianzmatrizen modelliert.\\
+Im Rahmen des Verbundprojekts wurden die Reglerstruktur sowie die Berechnungsgrundlagen so ausgelegt, dass eine spätere Erweiterung auf eine zur Laufzeit veränderliche Beobachterverstärkung ohne größeren Aufwand möglich wäre. Darüber hinaus wurde der Algorithmus des Kalman-Filters bereits implementiert und für den Einsatz vorbereitet. Im Zuge der Untersuchungen zeigte sich jedoch, dass das Messrauschen der Kamera sehr gering ist und der Messfehler nur minimale Schwankungen aufweist. Da ein Kalman-Filter seine Vorteile insbesondere bei verrauschten Messsignalen ausspielt, ist unter diesen Randbedingungen lediglich ein geringer zusätzlicher Nutzen zu erwarten. Zusätzlich ist die Aktualisierungsrate der Kamera im Vergleich zur Zykluszeit der Regelungssoftware von \SI{0.3333}{\milli\second} sehr niedrig. Somit stehen nur vergleichsweise selten neue Messwerte zur Verfügung, wodurch das Potenzial einer optimierten Zustandsschätzung weiter eingeschränkt wird. Darüber hinaus erfordert die Parametrierung eines Kalman-Filters eine sorgfältige Abstimmung der Prozess- und Messrauschkovarianzen. Da unter den gegebenen Hardwarebedingungen kein nennenswerter Genauigkeitsgewinn zu erwarten war, wurde auf eine weitere Optimierung des Kalman-Filters verzichtet. Stattdessen wurde eine deterministische Auslegung der Beobachterverstärkung gewählt, die ein vorhersehbares Verhalten ermöglicht und die Anforderungen der Anwendung bereits vollständig erfüllt.
 % -------------------------------------------------------------------------------- %
 % Modell Validierung
 % -------------------------------------------------------------------------------- %
@@ -229,7 +235,7 @@ Um das Beobachter Modell und dessen Implementierung zu validieren, ist es am ein
 \end{figure}
 Betrachtet man im Gegensatz zur blauen Kurve die roten, vom Beobachter berechneten Werte und vergleicht diese mit den in der Zielsetzung beschriebenen Anforderungen, lässt sich ein nahezu ideales Verhalten erkennen. Die Position wird um 100ms vorwärts propagiert, und zwischen den Sprüngen wird die Kurve geglättet.\\
 
-Noch deutlicher wird dies, wenn man die Beobachterkurve künstlich um 100ms verzögert. Dies ist in Abbildung \ref{fig:Obs_L1_NormalfahrtVerschoben} dargestellt. Hier ist gut zu erkennen, wie die Kamera bei jedem neuen Messwert wieder exakt auf die kontinuierliche Kurve des Beobachters springt.
+Noch deutlicher wird dies, wenn man die Beobachterkurve künstlich um \SI{100}{\milli\second} verzögert. Dies ist in Abbildung \ref{fig:Obs_L1_NormalfahrtVerschoben} dargestellt. Hier ist gut zu erkennen, wie die Kamera bei jedem neuen Messwert wieder exakt auf die kontinuierliche Kurve des Beobachters springt.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_L1_NormalfahrtVerschoben.pdf}
@@ -263,6 +269,7 @@ Betrachtet man den gleichen Versuch nochmal für einen deutlich geringere Verst�
     \label{fig:Obs_L01_Ausgleich}
 \end{figure}
 Zu guter letzt soll in Abbildung \ref{fig:Obs_VarGain_Gesammt} nochmal geprüft werden, ob mit einem vom Kamerafehler abhängigen variablen Verstärkung eine weitere Verbesserung des Verhaltens erreicht werden kann. Die Idee dahinter ist ein deutlich vereinfachter Grundgedanke des Kalman-Filters. Wenn der Messwert gut ist, soll sich mehr auf die Kammera verlassen werden und sonst mehr auf das Modell. Da der Kamerafehler direkt mitgeliefert wird ist auch nur noch eine sinnvolle Normierung um diesen Wert einzuführen.\\
+Hierfür wurde ein Threshold $E_{th} = 5$ des Kammerafehlers eingefügt. Dieser Wert entspricht des empirisch beobachteten maximalen Fehlers, ohne kompletten Ausfall, der Kamera in unserer Anlangensymulation. Wenn sich der aktuelle Fehler $e$ also zwischen nahe Null und Fünf bewegt, wird ein mittlerer Gain $L_{Gain}$ wie in Gleichung \ref{eq:ScalierungL} gezeit scalliert. Sollte $e$ größer als 5 sein, kann von einem Kamerafehler ausgegangen werden und die Verstärkung wird auf den heuristisch bestimmten mittleren Wert festgelegt werden.\\
 
 
 % CAMERA_ERROR_THRESHOLD	: REAL 	:= 5.0;		// Fehlergrenze
@@ -271,12 +278,12 @@ Zu guter letzt soll in Abbildung \ref{fig:Obs_VarGain_Gesammt} nochmal geprüft 
 % 	variableGain := L_Gain;
 % END_IF
 \begin{equation}
-    E_{\text{th}} = 5.0
     \text{variableGain} =
     \begin{cases}
     L_{\text{Gain}} \cdot \dfrac{e}{E_{\text{th}}}, & \text{wenn } 0.0001 \le L_{\text{Gain}} \cdot \dfrac{e}{E_{\text{th}}} \le 1 \\
     L_{\text{Gain}}, & \text{sonst}
     \end{cases}
+    \label{eq:ScalierungL}
 \end{equation}
 \begin{figure}[H]
     \centering
