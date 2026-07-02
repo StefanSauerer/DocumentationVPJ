@@ -1,8 +1,107 @@
 \chapter{Beobachter}
 Wie in dem Blockschaltbild (ref einfügen) zu sehen wird am Ende nicht die aktuelle Positon des Roboters sondern eine Verzögerte Position gemessen. Diese Verzögerung entsteht durch die Verarbeitung der Kammera-Messwerte sowie der Versendung über MQTT. Zudem kommt ein neuer Messwert immer nur alle \SI{100}{\milli\second} (Noch prüfen, ob wir wo anders eine Erklärung/Messung dafür anbringen) an, was zu einem Treppenförmigen Signal führt.
+
 \section{Zielsetzung}
 Zur Behebung dieser zwei Probleme soll ein Beobachter verwedet werden. Dieser nimmt als Eingang die Raddaten des Roboters und soll uns dann zu jeder Zeit aus der Anfangsposition und den Umdrehungen der Räder, die Aktuallposition des Roboters Vorwärtspropagieren.\\
 Um dies zu ermöglichen müssen zwei Dinge passieren. Zuersteinmal werden immer die Raddaten der letzten \SI{100}{\milli\second} benötigt, um die Verzögerung der Kamera auszugleichen. Das heißt bei eintreffen eines neuen Messwerts muss die Erhaltene Position um diese Zeitspanne vorwärtberechnet werden. Parallel läuft dauerhaft das Kinematische Modell mit, welches aus der Anfangsposition und den Raddaten kontinuierlich eine Geschätzte Position berechnet. Diese beiden Werte können dann miteinander verglichen werden, um den Fehler zu berechnen und mit einem Gain den Beobachterkreis zu schließen. Dadurch nähert sich schlussendlich der Beobachter und seine Zustandsgrößen dem realen Roboter an.
+% -------------------------------------------------------------------------------- %
+% latenzmessung
+% -------------------------------------------------------------------------------- %
+\section{Latenzmessung}
+
+Die Positionsregelung des omnidirektionalen Roboters wird vollständig auf der internen Steuerung realisiert. Die Rückführung der Roboterposition erfolgt über eines externes Kamerasystems. Aufgrund der unterschiedlichen Abtastraten sowie zusätzlicher Verzögerungen durch Bildaufnahme, Bildverarbeitung und Datenübertragung entsteht zwischen der tatsächlichen Bewegung des Roboters und der bereitgestellten Positionsinformation ein zeitlicher Versatz.
+
+Für die Bewertung und Parametrierung der Regelung ist die Kenntnis dieser Systemlatenz von entscheidender Bedeutung. Da die Größe dieser Verzögerung im Vorfeld nicht bekannt war, musste sie experimentell bestimmt werden.
+
+Hierzu wurde der Roboter entlang einer einzelnen Koordinatenachse im eigenen Koordinatensystem mit einer sinusförmigen Bewegung angeregt. Die resultierende Bewegung wurde einerseits durch das Kamerasystem erfasst und andererseits aus den gemessenen Motordrehzahlen beziehungsweise den Inkrementalgebern der Antriebe bestimmt. Durch den Vergleich beider Signalverläufe lässt sich der zeitliche Versatz zwischen der onboard berechneten Roboterbewegung und der externen Positionserfassung bestimmen.
+
+Als Anregungssignal wurde eine Sinusbewegung gewählt, da periodische Signale eine präzise Latenzbestimmung ermöglichen. Insbesondere besitzen sie eindeutig definierte Nullstellen, deren zeitliche Lage bereits bei geringen Verzögerungen messbar verschoben wird. 
+So wird ie Systemlatenz wird durch den zeitlichen Vergleich der Nullstellen beider Geschwindigkeitssignale bestimmt.
+
+Zur Erfassung der Messdaten wurde die Software Beckhoff TwinCAT Scope View eingesetzt. Die Konfiguration der Messaufzeichnung erfolgte mithilfe des Scope Wizards, über den die relevanten Prozesssignale ausgewählt und die Aufzeichnungsparameter festgelegt wurden. Die Kommunikation mit der Steuerung erfolgte über einen bereitgestellten offenen Port, wodurch die Signale der Main Motor Task während des Anlagenbetriebs aufgezeichnet werden konnten.
+
+Während der Messungen wurden die für die Auswertung erforderlichen Größen (die Drehzahlen aller drei Antriebsmotoren sowie die vom Kamerasystem erfassten Positionen des Roboters in X-, Y- und Rotationsrichtung), synchron erfasst. 
+
+Nach Abschluss der Messungen wurden die aufgezeichneten Datensätze aus TwinCAT Scope View in das CSV-Format exportiert. 
+
+Anschließend erfolgte der Import der Messdaten in MATLAB, wo die weitere Datenvorverarbeitung, Signalverarbeitung und Auswertung durchgeführt wurde. Die MATLAB-Skripte dienten dabei sowohl der Berechnung der Roboterbewegung aus den Motordrehzahlen als auch der Bestimmung der Systemlatenz durch den Vergleich mit den vom Kamerasystem aufgezeichneten Messdaten.
+
+Messwertausfälle des Kamerasystems werden durch lineare Interpolation ersetzt, um kontinuierliche Signalverläufe zu erhalten. Da die Ableitung der Positionsdaten vorhandenes Messrauschen verstärkt, werden sämtliche Signale zusätzlich mit einem Butterworth-Tiefpassfilter zweiter Ordnung mit einer Grenzfrequenz von \SI{2}{\hertz} gefiltert. 
+
+Anschließend werden aus den Motordrehzahlen mithilfe der Vorwärtskinematik die translatorischen Geschwindigkeiten in X- und Y-Richtung sowie die Winkelgeschwindigkeit des Roboters berechnet. Die zugrunde liegenden Zusammenhänge sind in Gleichung~\ref{eq:vorwaertskinematik} dargestellt.
+
+\begin{equation}
+\label{eq:vorwaertskinematik}
+\begin{aligned}
+v_x &= -\frac{\sqrt{3}}{3}\omega_2 + \frac{\sqrt{3}}{3}\omega_3 \\
+v_y &= \frac{2}{3}\omega_1 - \frac{1}{3}\omega_2 - \frac{1}{3}\omega_3 \\
+\omega &= \frac{1}{3R}\left(\omega_1 + \omega_2 + \omega_3\right)
+\end{aligned}
+\end{equation}
+
+Dabei gilt:
+
+\begin{itemize}
+    \item $v_x$: translatorische Geschwindigkeit in X-Richtung
+    \item $v_y$: translatorische Geschwindigkeit in Y-Richtung
+    \item $\omega$: Winkelgeschwindigkeit des Roboters
+    \item $\omega_1$, $\omega_2$, $\omega_3$: Drehgeschwindigkeiten der drei Räder
+    \item $R$: Abstand der Räder zum Roboterzentrum
+\end{itemize}
+
+Je nach Einheit der aufgezeichneten Motordrehzahlen erfolgt anschließend die Umrechnung in konsistente SI-Einheiten. Die Geschwindigkeiten des Kamerasystems werden durch numerische Differentiation der aufgezeichneten Positionsdaten bestimmt. Hierzu wird die MATLAB-Funktion \texttt{gradient()} verwendet.
+
+\begin{equation}
+\label{eq:kamera_geschwindigkeit}
+\begin{aligned}
+v_x &= \frac{dx}{dt} \\
+v_y &= \frac{dy}{dt} \\
+\omega &= \frac{d\theta}{dt}
+\end{aligned}
+\end{equation}
+
+Zur Überprüfung der Berechnung und des Einflusses der Tiefpassfilterung werden die aus den Motordrehzahlen bestimmten Geschwindigkeiten mit den aus den Kamerapositionen berechneten Geschwindigkeiten verglichen. Abbildung\ref{fig:gefilterte_signale} zeigt die gefilterten und ungefilterten Signalverläufe. 
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{_Bilder/gefilterte_signalverlaeufe}
+    \caption{Vergleich der gefilterten Geschwindigkeitsverläufe aus Motordrehzahlen und Kamerapositionen.}
+    \label{fig:gefilterte_signale}
+\end{figure}
+
+
+Nach Anwendung der Tiefpassfilterung stimmen beide Signalverläufe deutlich besser überein. Insbesondere die aus den Motordaten berechneten Geschwindigkeiten weisen einen wesentlich ruhigeren Verlauf auf und bilden damit eine geeignete Grundlage für die anschließende Latenzbestimmung.
+
+
+Bereits aus den Positionsverläufen ist außerdem zu erkennen, dass der Roboter bei einer offenen Ansteuerung ohne Positionsregelung eine kontinuierliche Drift aufweist. Ursache hierfür sind unter anderem Reibungseinflüsse sowie unsymetrische Abnutzung der Räder. Dadurch entsteht während der Bewegung eine langsame Rotation des Roboters, wodurch zusätzlich ein Bewegungsanteil in Y-Richtung entsteht.
+In Abbildung \ref{fig:positionsdrift}ist dieser Effekt nochmal besser an dem Verlauf der Position in X und Y- Richtung zu erkennen.
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{_Bilder/positionsdrift}
+    \caption{Positionsverläufe des Roboters bei offener Ansteuerung ohne Positionsregelung.}
+    \label{fig:positionsdrift}
+\end{figure}
+
+Zur Bestimmung der Systemlatenz werden die Nullstellen der aus den Motordrehzahlen berechneten sowie der aus den Kamerapositionen bestimmten Geschwindigkeitssignale ausgewertet. Da sich die tatsächlichen Nullstellen in der Regel zwischen zwei diskreten Messpunkten befinden, wird ihre exakte Lage mithilfe einer linearen Interpolation bestimmt. Die Zeitdifferenz entsprechender Nullstellen entspricht unmittelbar der Systemlatenz.
+
+Durch die sinusförmige Testbewegung entstehen zahlreiche Nullstellen, wodurch mehrere unabhängige Latenzmessungen durchgeführt werden können. Aus diesen Einzelwerten werden der Mittelwert und die Standardabweichung berechnet. Der Mittelwert beschreibt die mittlere Systemlatenz, während die Standardabweichung die zeitliche Streuung der Messwerte angibt. Eine geringe Standardabweichung weist auf eine reproduzierbare und zeitlich weitgehend konstante Verzögerung hin. Geringe Schwankungen entstehen unter anderem durch die endliche Bildrate des Kamerasystems, Unterschiede in der Bildverarbeitung sowie numerische Einflüsse bei der Signalverarbeitung.
+Der Nulstellenvergleich ist  in Abbildung \ref{fig:nullstellenvergleich} nochmals Veranschaulicht.
+Es ist auch ersichtlich, dass der Roboter deine X-Position in seinen eigenen Koordinaten als Konstant nimmt, während diese in den durch die Kammera aufgezeichneten Weltkoordinaten driftet. 
+Da nur die Nullstellen von Relevanz sind, ist dies relevant. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{_Bilder/nullstellenvergleich}
+    \caption{Vergleich der ermittelten Nullstellen bei der Geschwindigkeitssignale zur Bestimmung der Systemlatenz.}
+    \label{fig:nullstellenvergleich}
+\end{figure}
+
+Zur Bestimmung der Systemlatenz wurden mehrere Messungen unter identischen Versuchsbedingungen durchgeführt und mithilfe der entwickelten MATLAB-Auswertung analysiert. Die Ergebnisse der einzelnen Messungen stimmen gut überein und zeigen, dass die Verzögerung zwischen der Roboterbewegung und der kamerabasierten Positionserfassung weitgehend konstant ist.
+
+Aus den ermittelten Einzelmessungen ergibt sich eine mittlere Systemlatenz von \SI{100}{\milli\second}. Die geringe Streuung bestätigt die Reproduzierbarkeit der entwickelten Messmethode und zeigt, dass die Latenz im betrachteten Messbereich als nahezu konstanter Zeitversatz angenommen werden kann. Dieser Zeitversatz kann bei der weiteren Parametrierung und Bewertung der Regelung gezielt berücksichtigt werden.
 % -------------------------------------------------------------------------------- %
 % Kinematisches Beobachtermodell
 % -------------------------------------------------------------------------------- %
