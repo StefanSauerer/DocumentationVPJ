@@ -1,78 +1,64 @@
 \chapter{Regler}
+Das Kapitel arbeitet sich von der untersten Reglerebene am Rad bis zum übergeordneten Lageregler vor und folgt damit der Signalkette aus Abbildung Konzept in umgekehrter Richtung. Den Anfang macht der Drehzahlregler, der an jedem der drei Räder dafür sorgt, dass die vorgegebene Solldrehzahl anliegt. Da Gewerk 2 jedoch keine Raddrehzahlen, sondern eine Sollgeschwindigkeit des Roboters liefert, ist eine Transformation von Roboter in Motorkoordinaten nötig. Damit sind alle Bausteine für die Vektorfahrweise beisammen. Für die Positionsfahrweise kommt eine weitere Ebene hinzu: Die gemessene Position liegt in Weltkoordinaten vor und muss in das Roboterkoordinatensystem überführt werden. Darauf setzt schließlich der Lageregler auf, dessen Parameter über ein Gain-Scheduling an die jeweilige Situation angepasst werden, um eine zuverlässige Fahrt sicherzustellen.
+\section{Drehzahlregler}
+Der Drehzahlregler sorgt dafür, dass eine vorgegebene Sollgeschwindigkeit des Roboters auf die Motorbewegung der einzelnen Motoren übersetzt wird und korrekt umgesetzt wird. Der Drehzahlreger wird in TwinCAT als Funktionsbaustein umgesetzt. Als Eingangsgrößen werden Sollgeschwindigkeiten in X,Y, und $\theta$ im Roboterkoordinatensystembenötigt. Außerdem werden die Istgeschwindigkeiten der einzelnen Motoren an den Eingang zurückgeführt. Der Ausgang ist das Geschwidigkeitessignal für die einzelnen drei Motoren. Abbildung \ref{fig:Drehzahlregler_BB} zeigt den Drehzahlregler als Blackbox mit Eingangs- und Ausgangssignalen.
 
-\section{Koordinatentransformation}
-\textcolor{red}{Text noch zwingend überarbeiten (AI-Sloooop)\\ Wär auch noch ne Überlegung ob des nich ins Konzept kommt?}\\
-Zur Beschreibung der Bewegung des dreirädrigen omnidirektionalen Roboters werden zunächst die Geschwindigkeiten der einzelnen Räder in ihren jeweiligen lokalen Koordinatensystemen betrachtet. Aufgrund der speziellen Konstruktion der Omni-Räder entsteht neben der tangentialen Rollbewegung zusätzlich eine induzierte Querbewegung. Diese ist proportional zur Radgeschwindigkeit und ergibt sich zu
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{_Bilder/Drehzahlregler_BB.png}
+    \caption{Drehzahlregler als Blackbox mit Eingangs- und Ausgangssignalen}
+    \label{fig:Drehzahlregler_BB}
+\end{figure}
+
+\textbf{TargetVelocity}\\
+Die Target Velocity ist die Sollgeschwidigkeit des Roboters im Koordinatensystem des Roboters. Sie wird in $\frac{m}{s}$ angegeben und besteht aus drei voneinander unabhängigen Komponenten: X, Y und $\theta$. Die X-Komponente beschreibt die Geschwindigkeit in Vorwärtsrichtung, die Y-Komponente die Geschwindigkeit in Querrichtung und die $\theta$-Komponente die Winkelgeschwindigkeit um die Z-Achse. Durch Überlagerung der Bewegungen ist der Roboter in der Lage sich in alle Richtungen im Raum zu bewegen.
+\textbf{VelWheel}\\
+VelWheel1, -2 und -3 ist die Istgeschwindigkeit der einzelnen Motoren. Sie wird auch in $\frac{m}{s}$ angegeben. Die Berechnung erfolgt über den Encoder des Motors und den Radumfang mit folgender Formel:
 \begin{equation}
-    V_{in,j} = \frac{V_{w,j}}{\sqrt{3}}.
-\end{equation}
-Damit setzt sich die resultierende Geschwindigkeit eines jeden Rades aus der Antriebskomponente. Beispielsweise ergibt sich für Rad 1:
-\begin{align}
-    V_{1,x_1} &= \frac{V_{w3}}{\sqrt{3}} - \frac{V_{w2}}{\sqrt{3}}, \\
-    V_{1,y_1} &= V_{w1}.
-\end{align}
-Analog lassen sich die Geschwindigkeiten für die übrigen Räder formulieren.
-Zur Bestimmung der Gesamtbewegung des Roboters werden diese Geschwindigkeiten anschließend mittels Rotationsmatrizen in das roboterfeste Koordinatensystem überführt. Aufgrund der um 120 Grad versetzten Radanordnung ergeben sich hierfür die Transformationsbeziehungen
-\begin{equation}
-    \begin{bmatrix}
-        V_{jx} \\
-        V_{jy}
-    \end{bmatrix}
-    =
-    R_j
-    \begin{bmatrix}
-        V_{j,x_j} \\
-        V_{j,y_j}
-    \end{bmatrix}.
+    \text{VelWheel1} = -\frac{n_{1,\text{fromMotor}}}{n_{\text{max,KlemmeDrehzahlMessung}}} \cdot \frac{n_{\text{max,MotorRPM}}}{60} \cdot \ddot{u} \cdot 2\pi \cdot r_{\text{Wheel}}
 \end{equation}
 
-Die translatorische Geschwindigkeit des Roboters ergibt sich anschließend als Mittelwert der transformierten Einzelgeschwindigkeiten:
-\begin{align}
-\mathbf{V} = \frac{1}{3} \left( \mathbf{V}_1 + \mathbf{V}_2 + \mathbf{V}_3 \right).
-\end{align}
+\noindent Dabei bezeichnen:
+\begin{itemize}
+    \item $n_{1,\text{fromMotor}}$ -- Rohwert der Drehzahlmessung an der Motorklemme (vorzeichenbehaftet).
+    \item $n_{\text{max,KlemmeDrehzahlMessung}} = 10\,000$ -- Wert, den die Klemme bei maximaler Motordrehzahl zurückliefert (Skalierungsreferenz der Messung).
+    \item $n_{\text{max,MotorRPM}} = 3600\ \text{rpm}$ -- maximale Motordrehzahl. Zusammen mit dem vorherigen Term wird der Rohwert auf eine tatsächliche Drehzahl in Umdrehungen pro Minute umgerechnet; die Division durch $60$ wandelt diese in Umdrehungen pro Sekunde um.
+    \item $\ddot{u} = 0{,}0625$ -- Getriebeübersetzung zwischen Motor- und Raddrehzahl (Ausgangsdrehzahl = Motordrehzahl $\cdot\ \ddot{u}$).
+    \item $r_{\text{Wheel}} = 40\ \text{mm}$ -- Radradius. Über $2\pi \cdot r_{\text{Wheel}}$ wird die Raddrehzahl (in Umdrehungen/s) in eine Umfangsgeschwindigkeit umgerechnet.
+\end{itemize}
 
-Daraus folgen die kartesischen Geschwindigkeitskomponenten im Roboterkoordinatensystem zu
+\noindent Die Einheit von $r_{\text{Wheel}}$ ist Millimeter, somit ist die Einheit von $\text{VelWheel} \text{mm/s}$.\\
+\textbf{VelocityToMotor}\\
+VelocityToMotor1, -2 und -3 ist das jeweilige Ausgangssignal des Drehzahlreglers an die drei Motoren. Da die Motoren als Sollwert keinen Geschwindigkeitswert in $\text{mm/s}$, sondern einen skalierten Integerwert erwarten, muss $\text{VelWheel}$ vor der Ausgabe mit einem Skalierungsfaktor multipliziert werden. Die Berechnung erfolgt mit folgender Formel:
+
 \begin{equation}
-    \dot{x} = -\frac{\sqrt{3}}{3} V_{w2} + \frac{\sqrt{3}}{3} V_{w3}, \\
-    \dot{y} = \frac{2}{3} V_{w1} - \frac{1}{3} V_{w2} - \frac{1}{3} V_{w3}.
+    \text{VelocityToMotor1} = \text{VelWheel1} \cdot \text{skalPos}
 \end{equation}
 
-Neben der translatorischen Bewegung trägt jedes Rad ebenfalls zur Rotationsbewegung des Roboters bei. Die Winkelgeschwindigkeit ergibt sich dabei als Summe der Einzelbeiträge, wodurch
+\noindent Dabei bezeichnen:
+\begin{itemize}
+    \item $\text{VelWheel1}$ -- Istgeschwindigkeit des Motors in $\text{mm/s}$ (siehe oben).
+    \item $\text{skalPos} = 34{,}7668668\ \left[\dfrac{1}{\text{mm/s}}\right]$ -- Skalierungsfaktor, der die Geschwindigkeit in $\text{mm/s}$ auf den vom Motor erwarteten Integer-Wertebereich abbildet. Er berechnet sich aus dem Verhältnis von maximalem Ausgabewert zu maximal erreichbarer Geschwindigkeit:
+    \begin{equation}
+        \text{skalPos} = \frac{\text{MaxValue}}{\text{MaxVelocity}}
+    \end{equation}
+    \item $\text{MaxValue} = 32767$ -- maximaler darstellbarer Ausgabewert (Wertebereich eines vorzeichenbehafteten 16-Bit-Integers).
+    \item $\text{MaxVelocity} = 942\ \text{mm/s}$ -- maximal erreichbare Geschwindigkeit des Rades, berechnet aus dem Raddurchmesser $D$, der maximalen Motordrehzahl $n$ und der Getriebeübersetzung:
+    \begin{equation}
+        \text{MaxVelocity} = \frac{D \cdot \pi \cdot n}{16 \cdot 60}
+    \end{equation}
+    \item $D$ -- Raddurchmesser in mm.
+    \item $n$ -- maximale Motordrehzahl in rpm.
+    \item $16$ -- Getriebeübersetzung (Motor- zu Raddrehzahl, entspricht $\ddot{u} = \tfrac{1}{16} = 0{,}0625$).
+    \item $60$ -- Umrechnungsfaktor von Minuten auf Sekunden.
+\end{itemize}
 
-\begin{equation}
-\dot{\varphi} = \frac{V_{w1} + V_{w2} + V_{w3}}{3L}
-\end{equation}
+\noindent Da $\text{VelWheel1}$ in $\text{mm/s}$ und $\text{skalPos}$ in $\tfrac{1}{\text{mm/s}}$ angegeben sind, ist $\text{VelocityToMotor1}$ dimensionslos und stellt den direkten Sollwert für den Motorregler dar.
+\section{Koordinatentransformation Roboter -> Motoren}
+\section{Koordinatentransformation Welt -> Roboter}
+\section{Positionsregler}
+\section{Auswertung}
+\subsection{Vektorfahrweise}
+\subsection{Positionsfahrweise}
 
-resultiert, wobei LLL den Abstand der Räder vom Roboterzentrum beschreibt.
-Durch Zusammenführung der translatorischen und rotatorischen Anteile ergibt sich schließlich die Vorwärtskinematik in kompakter Matrixform:\\
-\textcolor{red}{Hier nochmal überlegen, ob des wirklich die inverse vom Beobachter is. Beobachter muss richtig sein}\\
-\begin{equation}
-    \begin{bmatrix}
-        \dot{x}\\
-        \dot{y}\\
-        \dot{\varphi}
-    \end{bmatrix}
-    =
-    \begin{bmatrix}
-        0 & -\frac{\sqrt{3}}{3} & \frac{\sqrt{3}}{3}\\
-        \frac{2}{3} & -\frac{1}{3} & -\frac{1}{3}\\
-        \frac{1}{3L} & \frac{1}{3L} & \frac{1}{3L}
-    \end{bmatrix}
-    \begin{bmatrix}
-        V_{w1}\\
-        V_{w2}\\
-        V_{w3}
-    \end{bmatrix}.
-    \label{eq:Koordinatentransformation}
-\end{equation}
-
-Diese Gleichung beschreibt die Koordinatentransformation von den Radgeschwindigkeiten in die kartesischen Bewegungsgrößen des Roboters und stellt somit die Grundlage für die Regelung sowie die Trajektorienplanung dar.
-
-\section{Vektorfahrweise}
-\subsection{Geschwindigkeitsregelung}
-\subsection{Auswertung}
-
-\section{Positionsfahrweise}
-\subsection{Lageregelung}
-\subsection{Auswertung}
 
