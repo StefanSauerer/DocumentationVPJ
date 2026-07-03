@@ -8,4 +8,16 @@ Hier dann auch die Aufteilung in Unterblöcke besprechen
 \section{Schnittstellen}
 
 \section{Interne Statemachine der Regelung}
-Hier dann nochmal die interne Statemachine der Regelung auflisten
+\begin{table}[h]
+\centering
+
+\begin{tabular}{l|l}
+Variable & Zustände \\
+\hline
+RobotControl &
+Vector, Position, Idle, Stop, Rest \\
+RobotStatus &
+Betriebsbereit, Fehler, Offline, Laufend, Ziel erreicht \\
+\end{tabular}
+\caption{Mögliche Roboterzustände}
+\end{table}

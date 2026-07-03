@@ -1,5 +1,5 @@
 % $ biblatex auxiliary file $
-% $ biblatex bbl format version 3.2 $
+% $ biblatex bbl format version 3.3 $
 % Do not modify the above lines!
 %
 % This is an auxiliary file used by the 'biblatex' package.
@@ -18,8 +18,68 @@
 
 
 \refsection{0}
-  \datalist[entry]{nty/global//global/global}
-    \entry{lunze_regelungstechnik1}{book}{}
+  \datalist[entry]{nty/global//global/global/global}
+    \entry{ErhardNLR2025}{misc}{}{}
+      \name{author}{1}{}{%
+        {{hash=ca986bbd034fb72f0e2452d3dfad53c1}{%
+           family={Erhard},
+           familyi={E\bibinitperiod},
+           given={Prof.\bibnamedelimi Dr.\bibnamedelimi Michael},
+           giveni={P\bibinitperiod\bibinitdelim D\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+      }
+      \strng{namehash}{ca986bbd034fb72f0e2452d3dfad53c1}
+      \strng{fullhash}{ca986bbd034fb72f0e2452d3dfad53c1}
+      \strng{fullhashraw}{ca986bbd034fb72f0e2452d3dfad53c1}
+      \strng{bibnamehash}{ca986bbd034fb72f0e2452d3dfad53c1}
+      \strng{authorbibnamehash}{ca986bbd034fb72f0e2452d3dfad53c1}
+      \strng{authornamehash}{ca986bbd034fb72f0e2452d3dfad53c1}
+      \strng{authorfullhash}{ca986bbd034fb72f0e2452d3dfad53c1}
+      \strng{authorfullhashraw}{ca986bbd034fb72f0e2452d3dfad53c1}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{note}{Vorlesungsunterlagen, Hochschule für Angewandte Wissenschaften, Wintersemester 2025}
+      \field{title}{Nichtlineare Regelung}
+      \field{year}{2025}
+    \endentry
+    \entry{Hacene2019}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=f5fb6e41d52f218cb0880e099a5125b9}{%
+           family={Hacene},
+           familyi={H\bibinitperiod},
+           given={Nacer},
+           giveni={N\bibinitperiod}}}%
+        {{hash=8ea93d7e0a77ab20cf5617c65ea32afd}{%
+           family={Mendil},
+           familyi={M\bibinitperiod},
+           given={Boubekeur},
+           giveni={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{552808d212617f921512fbc2d0d18ecd}
+      \strng{fullhash}{552808d212617f921512fbc2d0d18ecd}
+      \strng{fullhashraw}{552808d212617f921512fbc2d0d18ecd}
+      \strng{bibnamehash}{552808d212617f921512fbc2d0d18ecd}
+      \strng{authorbibnamehash}{552808d212617f921512fbc2d0d18ecd}
+      \strng{authornamehash}{552808d212617f921512fbc2d0d18ecd}
+      \strng{authorfullhash}{552808d212617f921512fbc2d0d18ecd}
+      \strng{authorfullhashraw}{552808d212617f921512fbc2d0d18ecd}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Journal of Control, Automation and Electrical Systems}
+      \field{number}{2}
+      \field{title}{Motion Analysis and Control of Three-Wheeled Omnidirectional Mobile Robot}
+      \field{volume}{30}
+      \field{year}{2019}
+      \field{pages}{194\bibrangedash 213}
+      \range{pages}{20}
+      \verb{doi}
+      \verb 10.1007/s40313-019-00439-0
+      \endverb
+    \endentry
+    \entry{lunze_regelungstechnik1}{book}{}{}
       \name{author}{1}{}{%
         {{hash=4229949aab4df09799280ea8dfc50322}{%
            family={Lunze},
@@ -32,10 +92,12 @@
       }
       \strng{namehash}{4229949aab4df09799280ea8dfc50322}
       \strng{fullhash}{4229949aab4df09799280ea8dfc50322}
+      \strng{fullhashraw}{4229949aab4df09799280ea8dfc50322}
       \strng{bibnamehash}{4229949aab4df09799280ea8dfc50322}
       \strng{authorbibnamehash}{4229949aab4df09799280ea8dfc50322}
       \strng{authornamehash}{4229949aab4df09799280ea8dfc50322}
       \strng{authorfullhash}{4229949aab4df09799280ea8dfc50322}
+      \strng{authorfullhashraw}{4229949aab4df09799280ea8dfc50322}
       \field{sortinit}{L}
       \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
       \field{labelnamesource}{author}

@@ -151,13 +151,13 @@ Wie in Abbildung \ref{fig:Grafik-Omniroboter} zu sehen, sind die Geschwindigkeit
 
 	% Radiusbeschriftung
 	\draw[<->] (0,-1.4) -- (\L,-1.4);
-	\node at (0.6,-1.55) {$L$};
+	\node at (0.6,-1.55) {$R$};
 
 	\end{tikzpicture}
 	\caption{3-Rad-Omniroboter mit Radwinkeln $60^\circ$, $180^\circ$, $300^\circ$}
     \label{fig:Grafik-Omniroboter}
 \end{figure}
-Um die Gesamtgeschwindigkeit des Roboters zu berechnen, müssen die Beiträge aller drei Räder berücksichtigt und in das globale Koordinatensystem transformiert werden.Hierfür wird zunächst die Geschwindigkeit jedes Rades im lokalen Radkoordinatensystem $(x_j, y_j)$ beschrieben, wobei die erste Zeile die Querkomponente und die zweite Zeile die direkte Rollkomponente darstellt. Die Querkomponente entsteht durch die Kopplung mit den anderen Rädern und lässt sich berechnen, indem die Geschwindigkeitsvektoren der anderen Räder entsprechend ihrer Anordnung und der Geometrie des Roboters gewichtet werden. Da die Räder in einem Winkel von 120° zueinander angeordnet sind, ergibt sich für die Querkomponente ein Faktor von $1/\sqrt{3}$\textcolor{red}{(Vielleicht hier einfach Quelle angeben und nicht erklären?)}:
+Um die Gesamtgeschwindigkeit des Roboters zu berechnen, müssen die Beiträge aller drei Räder berücksichtigt und in das globale Koordinatensystem transformiert werden.Hierfür wird zunächst die Geschwindigkeit jedes Rades im lokalen Radkoordinatensystem beschrieben, wobei die erste Zeile die Querkomponente und die zweite Zeile die direkte Rollkomponente darstellt. Die Querkomponente entsteht durch die Kopplung mit den anderen Rädern und lässt sich berechnen, indem die Geschwindigkeitsvektoren der anderen Räder entsprechend ihrer Anordnung und der Geometrie des Roboters gewichtet werden. Da die Räder in einem Winkel von 120° zueinander angeordnet sind, ergibt sich für die Querkomponente ein Faktor von $1/\sqrt{3}$, wie in \cite{Hacene2019} hergeleitet :
 
 \begin{equation}
     \vec{V}_1^{wheel} = 
@@ -215,7 +215,7 @@ v_y^{body} \\
 Und die Rotationsgeschwindigkeit ist:
 
 \begin{equation}
-\dot{\varphi} = \frac{1}{3L}(V_{w1} + V_{w2} + V_{w3})
+\dot{\varphi} = \frac{1}{3R}(V_{w1} + V_{w2} + V_{w3})
 \end{equation}
 
 Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen die Winkelwerte $\alpha_1 = 60^\circ$, $\alpha_2 = 180^\circ$ und $\alpha_3 = 300^\circ$ eingesetzt werden.
@@ -226,12 +226,12 @@ Durch Einsetzen dieser Werte in die Rotationsmatrizen und Ausmultiplizieren der 
     \begin{bmatrix}
         v_x^{body} \\
         v_y^{body} \\
-        \omega
+        \dot{\varphi}
     \end{bmatrix}
     =
     \begin{bmatrix}
         -\frac{\sqrt{3}}{3} & 0 & \frac{\sqrt{3}}{3} \\
-		\frac{1}{3} & -\frac{1}{3} & \frac{1}{3} \\
+		\frac{1}{3} & -\frac{2}{3} & \frac{1}{3} \\
 		\frac{1}{3R} & \frac{1}{3R} & \frac{1}{3R}
     \end{bmatrix}
     \begin{bmatrix}
@@ -299,7 +299,7 @@ Die Aufgabe bei der Auslegung des Luenberger-Beobachters besteht darin, die Vers
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Bilder/KalmanFilter.png}
-    \caption{Konzept Kalman-Filter}
+    \caption{Konzept Kalman-Filter \cite{ErhardNLR2025}}
     \label{fig:KalmanFilter}
 \end{figure}
 Die Abbildung \ref{fig:KalmanFilter} zeigt das vereinfachte Konzept des Kalman-Filters, das im Folgenden als Erweiterung des Luenberger-Beobachters unertersucht werden soll. Auch hier erfolgt eine Zustandsrekonstruktion, jedoch auf Basis einer stochastischen Beschreibung von Prozess- und Messrauschen. Der Kalman-Filter erweitert die Beobachterstruktur um eine stochastische Beschreibung von Prozess- und Messrauschen. Die Zustandsrekonstruktion erfolgt in zwei Schritten. Dabei wird in der Prädiktion auf Basis des Systemmodells der Zustand sowie die Fehlerkovarianz vorhergesagt:
@@ -345,7 +345,6 @@ Noch deutlicher wird dies, wenn man die Beobachterkurve künstlich um \SI{100}{\
 % Regler Parametrierung
 % -------------------------------------------------------------------------------- %
 \section{Beobachterverstärkung Paremetrierung}
-\textcolor{red}{Noch Bents Punkt mit dem Ausgleich anbringen (Wo geht des eigentlich genau zurück/ Was sin des für Einheiten)}\\
 Für die Regler Parametrierung soll nun eine Fahrt betrachtet werden, in der der Roboter eine längere Zeit keinen Kammera-Messwert bekommt und somit das Modell langsam von der Realität abdriftet. In Abbildung \ref{fig:Obs_L1_Gesammt} ist diese Messung einmal im gesammten dargestellt. Hierfür wurde während der Fahrt in x-Richtung der Navigationscode des Roboters für etwa 12s abgedeckt.
 \begin{figure}[H]
     \centering
@@ -367,9 +366,10 @@ Betrachtet man den gleichen Versuch nochmal für einen deutlich geringere Verst�
     \caption{Beobachter mit langsamen Ausgleich}
     \label{fig:Obs_L01_Ausgleich}
 \end{figure}
-Zu guter letzt soll in Abbildung \ref{fig:Obs_VarGain_Gesammt} nochmal geprüft werden, ob mit einem vom Kamerafehler abhängigen variablen Verstärkung eine weitere Verbesserung des Verhaltens erreicht werden kann. Die Idee dahinter ist ein deutlich vereinfachter Grundgedanke des Kalman-Filters. Wenn der Messwert gut ist, soll sich mehr auf die Kammera verlassen werden und sonst mehr auf das Modell. Da der Kamerafehler direkt mitgeliefert wird ist auch nur noch eine sinnvolle Normierung um diesen Wert einzuführen.\\
-Hierfür wurde ein Threshold $E_{th} = 5$ des Kammerafehlers eingefügt. Dieser Wert entspricht des empirisch beobachteten maximalen Fehlers, ohne kompletten Ausfall, der Kamera in unserer Anlangensymulation. Wenn sich der aktuelle Fehler $e$ also zwischen nahe Null und Fünf bewegt, wird ein mittlerer Gain $L_{Gain}$ wie in Gleichung \ref{eq:ScalierungL} gezeit scalliert. Sollte $e$ größer als 5 sein, kann von einem Kamerafehler ausgegangen werden und die Verstärkung wird auf den heuristisch bestimmten mittleren Wert festgelegt werden.\\
-
+Zu guter Letzt soll anhand von Abbildung \ref{fig:Obs_VarGain_Gesammt} untersucht werden, ob durch eine vom Kamerafehler abhängige variable Beobachterverstärkung eine weitere Verbesserung des Beobachterverhaltens erreicht werden kann. Die zugrunde liegende Idee orientiert sich an einem vereinfachten Grundgedanken des Kalman-Filters. Besitzt die Kamera eine hohe Messgüte, soll den Messwerten ein höheres Vertrauen entgegengebracht werden. Nimmt die Qualität der Messung hingegen ab, soll der Beobachter stärker auf das zugrunde liegende Modell zurückgreifen.
+Da der von der Kamera bereitgestellte Fehlerindikator direkt verfügbar ist, bietet sich dessen Verwendung zur Anpassung der Beobachterverstärkung an. Hierzu wird der Kamerafehler eee auf einen geeigneten Wertebereich normiert und zur Skalierung der Verstärkung herangezogen.
+Zur Umsetzung wird ein Schwellwert $E_{th}=5$ eingeführt. Dieser Wert entspricht dem maximal beobachteten Kamerafehler, bei dem in der Anlagensimulation noch kein vollständiger Ausfall der Kamera festgestellt wurde. Für Fehlerwerte im Bereich $E_{th}0<e<E{th}$ wird die Beobachterverstärkung proportional zum normierten Fehler $E_{th}$ skaliert. Dadurch erfolgt eine kontinuierliche Anpassung der Verstärkung in Abhängigkeit von der Qualität der Kameramessung.
+Überschreitet der Kamerafehler den Schwellwert $E_{th}$, wird von einem fehlerhaften beziehungsweise nicht mehr vertrauenswürdigen Kamerasignal ausgegangen. Um eine übermäßige Beeinflussung des Beobachters durch fehlerhafte Messwerte zu vermeiden, wird die Verstärkung in diesem Fall auf einen empirisch bestimmten Maximalwert begrenzt. Die resultierende Verstärkung ergibt sich damit zu
 
 % CAMERA_ERROR_THRESHOLD	: REAL 	:= 5.0;		// Fehlergrenze
 % variableGain := L_Gain * actualError/CAMERA_ERROR_THRESHOLD;
@@ -377,13 +377,14 @@ Hierfür wurde ein Threshold $E_{th} = 5$ des Kammerafehlers eingefügt. Dieser 
 % 	variableGain := L_Gain;
 % END_IF
 \begin{equation}
-    \text{variableGain} =
+    L(e)=
     \begin{cases}
-    L_{\text{Gain}} \cdot \dfrac{e}{E_{\text{th}}}, & \text{wenn } 0.0001 \le L_{\text{Gain}} \cdot \dfrac{e}{E_{\text{th}}} \le 1 \\
-    L_{\text{Gain}}, & \text{sonst}
+        L_{\mathrm{nom}}\dfrac{e}{E_{th}}, & 0 \leq e \leq E_{th}\\
+        L_{\mathrm{nom}}, & e > E_{th}
     \end{cases}
     \label{eq:ScalierungL}
 \end{equation}
+wobei $L_{\mathrm{nom}}$ die nominale beziehungsweise maximal zulässige Beobachterverstärkung beschreibt.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_VarGain_Gesammt.pdf}
