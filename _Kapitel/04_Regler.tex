@@ -90,8 +90,9 @@ Diese Invertierung ist notwendig, da die Drehrichtung der Motoren im Projekt inv
     \item $\dot{x}$, $\dot{y}$, $\dot{\theta}$ -- invertierte Sollgeschwindigkeiten des Roboters (siehe oben).
 \end{itemize}
 
-\noindent Das Ergebnis dieser Transformation, \text{targetVelocityMotor1}, -2 und -3, entspricht der jeweiligen Solldrehzahl der drei Motoren und dient als Eingangsgröße für den in Abschnitt \ref{Interne Reglerstruktur} beschriebenen PI-Drehzahlregler. Die exemplarische Umsetzung dieser Umrechnung in TwinCAT wird im folgenden Abschnitt anhand einer Tabelle dargestellt.
+\noindent Das Ergebnis dieser Transformation, \text{targetVelocityMotor1}, -2 und -3, entspricht der jeweiligen Solldrehzahl der drei Motoren und dient als Eingangsgröße für den in Abschnitt \ref{InterneReglerstruktur} beschriebenen PI-Drehzahlregler. Die exemplarische Umsetzung dieser Umrechnung in TwinCAT wird im folgenden Abschnitt anhand einer Tabelle dargestellt.
 \subsection{Interne Reglerstruktur}
+\label{InterneReglerstruktur}
 Der Drehzahlregler ist als herkömmlicher PI-Regler ausgelegt. Er bildet aus den beiden Eingangssignalen Sollwert und Istwert einen Regelfehler, welcher über die beiden Reglerpfade proportional und integral verarbeitet wird. Der Regler bedient die 3 Motoren unabhängig voneinander, sodass die Reglerstruktur aus 3 parallelen aber identischen SISO Reglern besteht. Abbildung \ref{fig:Drehzahlregler_Intern} zeigt die interne Struktur des Drehzahlreglers für einen Motor.
 
 \begin{figure}[H]
@@ -105,7 +106,6 @@ Der Regler ist als PI-Regler ausgelegt, um eine bleibende Regelabweichung zu ele
 
 \begin{table}[H]
     \centering
-    \caption{Parameter des Drehzahlreglers}
     \label{tab:Drehzahlregler_Parameter}
     \begin{tabular}{|l|l|}
         \hline
@@ -118,11 +118,11 @@ Der Regler ist als PI-Regler ausgelegt, um eine bleibende Regelabweichung zu ele
         diffConst & 0,001 \\
         \hline
     \end{tabular}
+    \caption{Parameter des Drehzahlreglers}
 \end{table}
 
 \begin{table}[H]
     \centering
-    \caption{Exemplarischer Ablauf des Drehzahlreglers in TwinCAT}
     \label{tab:Drehzahlregler_TwinCAT}
     \begin{tabular}{|c|p{6cm}|p{8cm}|}
         \hline
@@ -137,6 +137,7 @@ Der Regler ist als PI-Regler ausgelegt, um eine bleibende Regelabweichung zu ele
         4 & Skalierung des Ausgangswerts auf den vom Motor erwarteten Wertebereich & \texttt{velocityM1Controled := velocityM1Controled * skalPos;} \\
         \hline
     \end{tabular}
+    \caption{Exemplarischer Ablauf des Drehzahlreglers in TwinCAT}
 \end{table}
 \section{Positionsregler}
 Der Positionsregler sorgt dafür, dass eine vorgegebene Sollposition des Roboters korrekt angefahren wird. Für verschiedene Fahrsituationen wird mit einem Gain Scheduling verschiedenes Fahrverhalten realisiert. Der Positionsregler wird in TwinCAT als Funktionsbaustein umgesetzt. Als Eingangsgrößen werden Sollpositionen im Weltkoordinatensystem benötigt. Außerdem wird die Istposition im gleichen Koordinatensystem an den Eingang zurückgeführt. Für das Gain Scheduling sind auch die Reglerparameter als Eingangsgrößen veränderbar. Der Ausgang ist die Sollgeschwidigkeit im Roboterkoordinatensystem, welche an den Drehzahlregler aus dem vorherigen Abschnitt weitergeleitet wird. Abbildung \ref{fig:Positionsregler_BB} zeigt den Positionsregler als Blackbox mit Eingangs- und Ausgangssignalen.
@@ -173,7 +174,6 @@ Für die X- und Y-Achse sind die Reglerparameter KP und KI von außen verstellba
 
 \begin{table}[H]
     \centering
-    \caption{Exemplarischer Ablauf des Positionsreglers in TwinCAT}
     \label{tab:Positionsregler_TwinCAT}
     \begin{tabular}{|c|p{6cm}|p{8cm}|}
         \hline
@@ -186,6 +186,7 @@ Für die X- und Y-Achse sind die Reglerparameter KP und KI von außen verstellba
         3 & Berechnung der geregelten Sollgeschwindigkeit in X-Richtung (P- und I-Anteil) & \texttt{W\_X\_targetSpeed := (error.reX * KPX) + (KIX * integralError.reX);} \\
         \hline
     \end{tabular}
+    \caption{Exemplarischer Ablauf des Positionsreglers in TwinCAT}
 \end{table}
 \subsection{Umrechnung von Welt- und Roboterkoordinaten}
 Die vom Positionsregler berechnete Sollgeschwindigkeit liegt zunächst im Weltkoordinatensystem vor (W\_X\_targetSpeed, W\_Y\_targetSpeed, W\_Theta\_targetSpeed), da auch die zugrunde liegende Positionsmessung (actualPos) im Weltkoordinatensystem erfolgt. Da der nachgelagerte Drehzahlregler jedoch eine Sollgeschwindigkeit im Koordinatensystem des Roboters (TargetVelocity) erwartet, muss die Sollgeschwindigkeit vor der Weitergabe entsprechend der aktuellen Orientierung des Roboters transformiert werden.
@@ -219,7 +220,6 @@ Somit schließt sich für den Regler ein vierter Schritt an:
 
 \begin{table}[H]
     \centering
-    \caption{Fortsetzung eines exemplarischen Ablaufs des Positionsreglers in TwinCAT}
     \label{tab:Positionsregler_Transformation}
     \begin{tabular}{|c|p{6cm}|p{8cm}|}
         \hline
@@ -229,7 +229,7 @@ Somit schließt sich für den Regler ein vierter Schritt an:
         \texttt{R\_X\_targetSpeed := cos(actualPos.reWinkel) * W\_X\_targetSpeed - sin(actualPos.reWinkel) * W\_Y\_targetSpeed;}\\      
         \hline
     \end{tabular}
-
+    \caption{Fortsetzung eines exemplarischen Ablaufs des Positionsreglers in TwinCAT}
 \end{table}
 \textbf{Anti-Windup Methode}\\
 Um zu verhindern, dass sich der Intergralanteil der Einfahrtsrichtung unkontrolliert aufsummiert, wird der Integralanteil auf 0 gesetzt, solange KIX = 0.

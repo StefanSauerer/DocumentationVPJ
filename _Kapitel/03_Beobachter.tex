@@ -1,5 +1,5 @@
 \chapter{Beobachter}
-Wie in dem Blockschaltbild (ref einfügen) zu sehen wird am Ende nicht die aktuelle Positon des Roboters sondern eine Verzögerte Position gemessen. Diese Verzögerung entsteht durch die Verarbeitung der Kammera-Messwerte sowie der Versendung über MQTT. Zudem kommt ein neuer Messwert immer nur alle \SI{100}{\milli\second} (Noch prüfen, ob wir wo anders eine Erklärung/Messung dafür anbringen) an, was zu einem Treppenförmigen Signal führt.
+Wie in dem Blockschaltbild \ref{fig:BlockschaltbildPosition} zu sehen wird am Ende nicht die aktuelle Positon des Roboters sondern eine Verzögerte Position gemessen. Diese Verzögerung entsteht durch die Verarbeitung der Kammera-Messwerte sowie der Versendung über MQTT. Zudem kommt ein neuer Messwert immer nur alle \SI{100}{\milli\second} (Noch prüfen, ob wir wo anders eine Erklärung/Messung dafür anbringen) an, was zu einem Treppenförmigen Signal führt.
 
 \section{Zielsetzung}
 Zur Behebung dieser zwei Probleme soll ein Beobachter verwedet werden. Dieser nimmt als Eingang die Raddaten des Roboters und soll uns dann zu jeder Zeit aus der Anfangsposition und den Umdrehungen der Räder, die Aktuallposition des Roboters Vorwärtspropagieren.\\
