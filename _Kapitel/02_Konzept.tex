@@ -18,7 +18,7 @@ In beiden Modi wird die aktuelle Position der Roboter durch einen Beobachter ges
 \end{figure}
 Hier dann auch die Aufteilung in Unterblöcke besprechen
 \section{Schnittstellen}
-
+Die Kommunikation zwischen der Bahnplanung (Gewerk 2) und der Robotersteuerung (Gewerk 3) erfolgt über zwei definierte Datenschnittstellen. Über die Schnittstelle von Gewerk 2 zu Gewerk 3 werden Bewegungsaufträge in Form von Fahrvektoren oder Zielpositionen sowie Steuerbefehle zur Ausführung übertragen. Die Robotersteuerung wertet diese Informationen aus und setzt die entsprechenden Bewegungen um.
 \begin{table}[H]
     \centering
     \begin{tabular}{l|l|l}
@@ -37,12 +37,11 @@ Hier dann auch die Aufteilung in Unterblöcke besprechen
     \end{tabular}
     \caption{Gewerk 2 $\rightarrow$ Gewerk 3}
 \end{table}
-
-
+In Gegenrichtung stellt die Robotersteuerung Informationen über die aktuell berechnete Roboterposition sowie den aktuellen Betriebszustand bereit. Dadurch erhält die Bahnplanung kontinuierlich Rückmeldungen über die Position des Roboters und den Fortschritt der ausgeführten Fahrbefehle. Die Trennung von Befehls- und Statusdaten ermöglicht eine klare Strukturierung der Kommunikation zwischen beiden Gewerken und vereinfacht die Erweiterung sowie Wartung des Gesamtsystems.
 
 \begin{table}[H]
     \centering
-    \begin{tabular}{l|l|l}
+    \begin{tabular}{l|l|p{9cm}}
     \toprule
     \textbf{Datentyp} & \textbf{Name} & \textbf{Kommentar} \\
     \midrule
@@ -50,22 +49,31 @@ Hier dann auch die Aufteilung in Unterblöcke besprechen
     \quad Real & reX & X-Position \\
     \quad Real & reY & Y-Position \\
     \quad Real & reWinkel & Berechnete Ausrichtung des Roboters in Grad \\
-    Int & inStatus & 0=offline, 1=Betriebsbereit, 2=Laufend, 3=Ziel erreicht, 4=Fehler \\
+    Int & inStatus & 0=offline, 1=Betriebsbereit, 2=Laufend,\newline
+    3=Ziel erreicht, 4=Fehler \\
     \bottomrule
     \end{tabular}
     \caption{Gewerk 3 $\rightarrow$ Gewerk 2}
 \end{table}
 
 \section{Interne Statemachine der Regelung}
+Die Robotersteuerung basiert auf einer zustandsorientierten Ablaufstruktur. Dabei werden die angeforderten Befehle über die Variable \texttt{RobotControl} vorgegeben, während der aktuelle Betriebszustand über die Variable \texttt{RobotStatus} zurückgemeldet wird.
 \begin{table}[H]
     \centering
     \begin{tabular}{l|l}
+    \hline
     Variable & Zustände \\
     \hline
     RobotControl &
-    Vector, Position, Idle, Stop, Rest \\
+    Vector, Position, Idle, Stop, Reset \\
     RobotStatus &
     Betriebsbereit, Fehler, Offline, Laufend, Ziel erreicht \\
+    \hline
     \end{tabular}
-    \caption{Mögliche Roboterzustände}
+    \caption{Zustände der internen Statemachine}
 \end{table}
+Die Variable \texttt{RobotControl} dient zur Vorgabe der gewünschten Betriebsart beziehungsweise Bewegung des Roboters. Im Zustand \texttt{Idle} befindet sich das System in einem Wartezustand ohne aktive Bewegung. Der Zustand \texttt{Position} wird verwendet, um den Roboter auf eine vorgegebene Zielposition zu verfahren. Hierbei wechselt die Regleung auch auf das in Abbildung \ref{fig:BlockschaltbildPosition} gezeigte Modell. Für Bewegungen entlang eines definierten Bewegungsvektors steht der Zustand \texttt{Vector} zur Verfügung, sowie er in Abbildung \ref{fig:BlockschaltbildGeschwindigkeit} gezeigt wird. Über den Zustand \texttt{Stop} können laufende Bewegungen kontrolliert angehalten werden. Der Zustand \texttt{Reset} dient dazu, den Roboter in den Grundzustand zurückzusetzen und Fehler zu quittieren.
+
+Die Variable \texttt{RobotStatus} beschreibt den aktuellen Betriebszustand des Systems. Der Status \texttt{Betriebsbereit} signalisiert, dass keine Störungen vorliegen und neue Bewegungsbefehle verarbeitet werden können. Während der Ausführung eines Fahrbefehls, wenn also der Roboter sich im zustand Positon oder Vector befindet, wird der Status \texttt{Laufend} gesetzt. Nach erfolgreichem Abschluss einer Bewegung wird der Status \texttt{Ziel erreicht} ausgegeben. Tritt eine Störung auf, wechselt das System in den Status \texttt{Fehler}. Ist keine betriebsbereite Verbindung zum Roboter vorhanden oder steht das System nicht zur Verfügung, wird der Status \texttt{Offline} gemeldet.
+
+Durch die Trennung von Steuerbefehlen und Zustandsrückmeldungen wird eine übersichtliche Kommunikation zwischen Anwendungssoftware und Robotersteuerung ermöglicht. Gleichzeitig erlaubt die Struktur eine einfache Erweiterung um zusätzliche Zustände oder Funktionen.
