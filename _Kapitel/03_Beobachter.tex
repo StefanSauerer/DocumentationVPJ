@@ -1,9 +1,9 @@
 \chapter{Beobachter}
-Wie in dem Blockschaltbild \ref{fig:BlockschaltbildPosition} zu sehen wird am Ende nicht die aktuelle Positon des Roboters sondern eine Verzögerte Position gemessen. Diese Verzögerung entsteht durch die Verarbeitung der Kammera-Messwerte sowie der Versendung über MQTT. Zudem kommt ein neuer Messwert immer nur alle \SI{100}{\milli\second} (Noch prüfen, ob wir wo anders eine Erklärung/Messung dafür anbringen) an, was zu einem Treppenförmigen Signal führt.
+Wie in dem Blockschaltbild \ref{fig:BlockschaltbildPosition} zu sehen wird am Ende nicht die aktuelle Positon des Roboters sondern eine verzögerte Position gemessen. Diese Verzögerung entsteht durch die Verarbeitung der Kammera-Messwerte sowie der Versendung über MQTT. Zudem kommt ein neuer Messwert immer nur alle \SI{100}{\milli\second} an, was zu einem Treppenförmigen Signal führt.
 
 \section{Zielsetzung}
 Zur Behebung dieser zwei Probleme soll ein Beobachter verwedet werden. Dieser nimmt als Eingang die Raddaten des Roboters und soll uns dann zu jeder Zeit aus der Anfangsposition und den Umdrehungen der Räder, die Aktuallposition des Roboters Vorwärtspropagieren.\\
-Um dies zu ermöglichen müssen zwei Dinge passieren. Zuersteinmal werden immer die Raddaten der letzten \SI{100}{\milli\second} benötigt, um die Verzögerung der Kamera auszugleichen. Das heißt bei eintreffen eines neuen Messwerts muss die Erhaltene Position um diese Zeitspanne vorwärtberechnet werden. Parallel läuft dauerhaft das Kinematische Modell mit, welches aus der Anfangsposition und den Raddaten kontinuierlich eine Geschätzte Position berechnet. Diese beiden Werte können dann miteinander verglichen werden, um den Fehler zu berechnen und mit einem Gain den Beobachterkreis zu schließen. Dadurch nähert sich schlussendlich der Beobachter und seine Zustandsgrößen dem realen Roboter an.
+Um dies zu ermöglichen müssen zwei Dinge passieren. Zuersteinmal werden immer die Raddaten der letzten \SI{100}{\milli\second} benötigt, um die Verzögerung der Kamera auszugleichen. Das heißt bei eintreffen eines neuen Messwerts muss die Erhaltene Position um diese Zeitspanne vorwärtberechnet werden. Parallel läuft dauerhaft das Kinematische Modell mit, welches aus der Anfangsposition und den Raddaten kontinuierlich eine Geschätzte Position berechnet. Diese beiden Werte können dann miteinander verglichen werden, um den Fehler zu berechnen und mit einer Verstärkung den Beobachterkreis zu schließen. Dadurch nähert sich schlussendlich der Beobachter und seine Zustandsgrößen dem realen Roboter an.
 % -------------------------------------------------------------------------------- %
 % latenzmessung
 % -------------------------------------------------------------------------------- %
@@ -24,7 +24,7 @@ Je nach Einheit der aufgezeichneten Motordrehzahlen erfolgt anschließend die Um
     \label{fig:gefilterte_signale}
 \end{figure}
 
-Bereits aus den Positionsverläufen ist außerdem zu erkennen, dass der Roboter bei einer offenen Ansteuerung ohne Positionsregelung eine kontinuierliche Drift aufweist. Ursache hierfür sind unter anderem Reibungseinflüsse und unsymmetrische Abnutzung der Räder. Dadurch entsteht während der Bewegung eine langsame Rotation des Roboters, wodurch zusätzlich ein Bewegungsanteil in Y-Richtung entsteht. In Abbildung~\ref{fig:positionsdrift}ist dieser Effekt nochmal besser an dem Verlauf der Position in X und Y- Richtung zu erkennen.
+Bereits aus den Positionsverläufen ist außerdem zu erkennen, dass der Roboter bei einer offenen Ansteuerung ohne Positionsregelung eine kontinuierliche Drift aufweist. Ursache hierfür sind unter anderem Reibungseinflüsse und unsymmetrische Abnutzung der Räder. Dadurch entsteht während der Bewegung eine langsame Rotation des Roboters, wodurch zusätzlich ein Bewegungsanteil in Y-Richtung entsteht. In Abbildung~\ref{fig:positionsdrift} ist dieser Effekt nochmal besser an dem Verlauf der Position in X und Y- Richtung zu erkennen.
 
 
 \begin{figure}[H]
@@ -35,7 +35,7 @@ Bereits aus den Positionsverläufen ist außerdem zu erkennen, dass der Roboter 
 \end{figure}
 
 Zur Bestimmung der Systemlatenz werden die Nullstellen der aus den Motordrehzahlen berechneten sowie der aus den Kamerapositionen bestimmten Geschwindigkeitssignale ausgewertet. Da sich die tatsächlichen Nullstellen in der Regel zwischen zwei diskreten Messpunkten befinden, wird ihre exakte Lage mithilfe einer linearen Interpolation bestimmt. Die Zeitdifferenz entsprechender Nullstellen entspricht unmittelbar der Systemlatenz. Durch die sinusförmige Testbewegung entstehen zahlreiche Nullstellen, wodurch mehrere unabhängige Latenzmessungen durchgeführt werden können. Aus diesen Einzelwerten werden der Mittelwert und die Standardabweichung berechnet. Der Mittelwert beschreibt die mittlere Systemlatenz, während die Standardabweichung die zeitliche Streuung der Messwerte angibt. Geringe Schwankungen können unter anderem durch Unterschiede in der Bildverarbeitung sowie numerische Einflüsse bei der Signalverarbeitung entstehen.
-Der Nulstellenvergleich ist  in Abbildung~\ref{fig:nullstellenvergleich} nochmals Veranschaulicht. Es ist auch ersichtlich, dass der Roboter deine X-Position in seinen eigenen Koordinaten als Konstant nimmt, während diese in den durch die Kamera aufgezeichneten Weltkoordinaten driftet. 
+Der Nulstellenvergleich ist  in Abbildung~\ref{fig:nullstellenvergleich} nochmals Veranschaulicht. Es ist auch ersichtlich, dass der Roboter deine X-Position in seinen eigenen Koordinaten als konstant nimmt, während diese in den durch die Kamera aufgezeichneten Weltkoordinaten driftet. 
 Da nur die Nullstellen von Relevanz sind, ist dies relevant. 
 
 \begin{figure}[H]
@@ -46,7 +46,8 @@ Da nur die Nullstellen von Relevanz sind, ist dies relevant.
 \end{figure}
 
 
-Zur Bestimmung der Systemlatenz wurden mehrere Messungen unter identischen Versuchsbedingungen durchgeführt und mithilfe der entwickelten MATLAB-Auswertung analysiert. Die Ergebnisse der einzelnen Messungen stimmen gut überein und zeigen, dass die Verzögerung zwischen der Roboterbewegung und der kamerabasierten Positionserfassung weitgehend konstant ist. Bei einer exemplarischen Messung wurde eine mittlere Latenz von \SI{0.100732}{\second} sowie eine Standardabweichung von \SI{0.020786}{\second} ermittelt. Zwischen den einzelnen Messungen traten zwar geringe Unterschiede auf, die gemessenen Mittelwerte lagen jedoch alle in einer ähnlichen Größenordnung. Daher wurde für die weitere Auswertung und Parametrierung des Systems eine konstante Systemlatenz von \SI{100}{\milli\second} angenommen. Die Standardabweichung von rund \SI{21}{\milli\second} weist auf eine geringe Streuung der Messergebnisse hin und bestätigt die Reproduzierbarkeit der entwickelten Messmethode.% -------------------------------------------------------------------------------- %
+Zur Bestimmung der Systemlatenz wurden mehrere Messungen unter identischen Versuchsbedingungen durchgeführt und mithilfe der entwickelten MATLAB-Auswertung analysiert. Die Ergebnisse der einzelnen Messungen stimmen gut überein und zeigen, dass die Verzögerung zwischen der Roboterbewegung und der kamerabasierten Positionserfassung weitgehend konstant ist. Bei einer exemplarischen Messung wurde eine mittlere Latenz von \SI{100.732}{\milli\second} sowie eine Standardabweichung von \SI{20.786}{\milli\second} ermittelt. Zwischen den einzelnen Messungen traten zwar geringe Unterschiede auf, die gemessenen Mittelwerte lagen jedoch alle in einer ähnlichen Größenordnung. Daher wurde für die weitere Auswertung und Parametrierung des Systems eine konstante Systemlatenz von \SI{100}{\milli\second} angenommen. Die Standardabweichung von rund \SI{21}{\milli\second} weist auf eine geringe Streuung der Messergebnisse hin und bestätigt die Reproduzierbarkeit der entwickelten Messmethode.
+% -------------------------------------------------------------------------------- %
 % Kinematisches Beobachtermodell
 % -------------------------------------------------------------------------------- %
 \section{Kinematisches Beobachtermodell}
@@ -101,7 +102,7 @@ Wie in Abbildung \ref{fig:Grafik-Omniroboter} zu sehen, sind die Geschwindigkeit
 	\caption{3-Rad-Omniroboter mit Radwinkeln $60^\circ$, $180^\circ$, $300^\circ$}
     \label{fig:Grafik-Omniroboter}
 \end{figure}
-Um die Gesamtgeschwindigkeit des Roboters zu berechnen, müssen die Beiträge aller drei Räder berücksichtigt und in das globale Koordinatensystem transformiert werden.Hierfür wird zunächst die Geschwindigkeit jedes Rades im lokalen Radkoordinatensystem beschrieben, wobei die erste Zeile die Querkomponente und die zweite Zeile die direkte Rollkomponente darstellt. Die Querkomponente entsteht durch die Kopplung mit den anderen Rädern und lässt sich berechnen, indem die Geschwindigkeitsvektoren der anderen Räder entsprechend ihrer Anordnung und der Geometrie des Roboters gewichtet werden. Da die Räder in einem Winkel von 120° zueinander angeordnet sind, ergibt sich für die Querkomponente ein Faktor von $1/\sqrt{3}$, wie in \cite{Hacene2019} hergeleitet :
+Um die Gesamtgeschwindigkeit des Roboters zu berechnen, müssen die Beiträge aller drei Räder berücksichtigt und in das globale Koordinatensystem transformiert werden. Hierfür wird zunächst die Geschwindigkeit jedes Rades im lokalen Radkoordinatensystem beschrieben, wobei die erste Zeile die Querkomponente und die zweite Zeile die direkte Rollkomponente darstellt. Die Querkomponente entsteht durch die Kopplung mit den anderen Rädern und lässt sich berechnen, indem die Geschwindigkeitsvektoren der anderen Räder entsprechend ihrer Anordnung und der Geometrie des Roboters gewichtet werden. Da die Räder in einem Winkel von 120° zueinander angeordnet sind, ergibt sich für die Querkomponente ein Faktor von $1/\sqrt{3}$, wie in \cite{Hacene2019} hergeleitet:
 
 \begin{equation}
     \vec{V}_1^{wheel} = 
@@ -156,15 +157,13 @@ v_y^{body} \\
 \mathbf{R(\alpha_j)}\,\vec{V}_j^{(w)}
 \end{equation}
 
-Und die Rotationsgeschwindigkeit ist:
+Und die Rotationsgeschwindigkeit ergiebt sich ebenfalls aus dem Mittelwert der drei Raddrehzahlen, wobei der Radius des Roboters $R$ berücksichtigt wird:
 
 \begin{equation}
 \dot{\varphi} = \frac{1}{3R}(V_{w1} + V_{w2} + V_{w3})
 \end{equation}
 
-Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen die Winkelwerte $\alpha_1 = 60^\circ$, $\alpha_2 = 180^\circ$ und $\alpha_3 = 300^\circ$ eingesetzt werden.
-
-Durch Einsetzen dieser Werte in die Rotationsmatrizen und Ausmultiplizieren der Summe ergibt sich die folgende kompakte Matrixdarstellung:
+Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen die Winkelwerte $\alpha_1 = 60^\circ$, $\alpha_2 = 180^\circ$ und $\alpha_3 = 300^\circ$ in die Rotationsmatrizen eingesetzt werden.Nach Ausmultiplizieren der Summe ergibt sich die folgende kompakte Matrixdarstellung:
 
 \begin{equation}
     \begin{bmatrix}
@@ -185,8 +184,9 @@ Durch Einsetzen dieser Werte in die Rotationsmatrizen und Ausmultiplizieren der 
     \end{bmatrix}
     \label{eq:Vorwärtsmatrix}
 \end{equation}
+Die Herleitung dieser Gleichung kann auch nochmal mit der in \cite{Hacene2019} verglichen und nachgelesen werden.\\
 
-Die Umrechnung Geschwindigkeit in Weltkoordinaten erfolgt dabei wiefolgt, wobei $\theta$ der aktuelle Winkel des Roboters im Raum ist:
+Die Umrechnung Geschwindigkeit in Weltkoordinaten erfolgt dabei wiefolgt, wobei $\varphi$ der aktuelle Winkel des Roboters im Raum ist:
 \begin{equation}
     \begin{bmatrix}
         v_x^{world} \\
@@ -194,8 +194,8 @@ Die Umrechnung Geschwindigkeit in Weltkoordinaten erfolgt dabei wiefolgt, wobei 
     \end{bmatrix}
     =
     \begin{bmatrix}
-        \cos(\theta) & -\sin(\theta) \\
-        \sin(\theta) & \cos(\theta)
+        \cos(\varphi) & -\sin(\varphi) \\
+        \sin(\varphi) & \cos(\varphi)
     \end{bmatrix}
     \begin{bmatrix}
         v_x^{body} \\
@@ -229,16 +229,16 @@ Um schlussendlich die Position im Raum zu berechnen, integriert man die Geschwin
 % Beobachterstruktur
 % -------------------------------------------------------------------------------- %
 \section{Beobachterstruktur}
-Hier vielleicht noch kurz iwas angeben zu, warum Struktur oder so
+Zur Einbindung des bereits beschribenen Modells, soll im folgenden die Beobachterstruktur beschrieben werden. 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Bilder/LuneburgerBeobachter_Unbehauen.png}
     \caption{Zustandsbeobachter nach Luneburger \cite{lunze_regelungstechnik1}}
     \label{fig:LuneburgerBeobachter_Unbehauen}
 \end{figure}
-Die erste Abbildung zeigt die klassische Struktur eines Zustandsbeobachters nach Luenberger. Ausgangspunkt ist ein lineares zeitinvariantes System in Zustandsraumdarstellung mit den Matrizen A, B und C. Ziel des Beobachters ist die Rekonstruktion der nicht direkt messbaren Zustände x auf Basis des Eingangssignals u und der gemessenen Ausgangsgröße y. Der Luenberger-Beobachter bildet dazu ein dynamisches System nach, das strukturell weitgehend identisch mit dem Originalsystem ist. Der zentrale Unterschied besteht in der Rückführung des Schätzfehlers, also der Differenz zwischen gemessenem Ausgang y und geschätztem Ausgang $\hat{y}$
+Die erste Abbildung zeigt die klassische Struktur eines Zustandsbeobachters nach Luenberger. Ausgangspunkt ist ein lineares zeitinvariantes System in Zustandsraumdarstellung mit den Matrizen A, B und C. Ziel des Beobachters ist die Rekonstruktion der nicht direkt messbaren Zustände x auf Basis des Eingangssignals u und der gemessenen Ausgangsgröße y. Der Luenberger-Beobachter bildet dazu ein dynamisches System nach, das strukturell weitgehend identisch mit dem Originalsystem ist. Der zentrale Unterschied besteht in der Rückführung des Schätzfehlers, also der Differenz zwischen gemessenem Ausgang y und geschätztem Ausgang $\hat{y}$.
 Diese Differenz wird über eine Beobachterverstärkung F (im Folgenden L genannt) auf das Beobachtersystem zurückgeführt. Dadurch ergibt sich die typische Beobachterdynamik:
-$\dot{\hat{x}}=A\hat{x}+Bu+F(y-\hat{y})$
+$\dot{\hat{x}}=A\hat{x}+Bu+L(y-\hat{y})$
 mit $\hat{y}=C\cdot\hat{x}$.
 Die Aufgabe bei der Auslegung des Luenberger-Beobachters besteht darin, die Verstärkungsmatrix L so zu wählen, dass der Schätzfehler $e=x-\hat{x}$ asymptotisch gegen null konvergiert. Anschaulich bedeutet dies, dass sich der Zustandsbeobachter an unser reales Modell möglichst gut annähert.
 \begin{figure}[H]
@@ -265,7 +265,7 @@ P_{k+1} &= \left( I - K_{k+1} C \right) P_{k+1}^-
 \end{align}
 Der Kalman-Filter bestimmt den Verstärkungsfaktor $K_{k+1}$ optimal im Sinne der Minimierung der Schätzfehlerkovarianz. Dabei werden die statistischen Eigenschaften des Prozessrauschens ($Q$) und des Messrauschens ($R$) explizit berücksichtigt.\\
 Der wesentliche Unterschied zwischen dem Luenberger-Beobachter und dem Kalman-Filter liegt in der Auslegung der Beobachterverstärkung. Beim Luenberger-Beobachter wird die Matrix L deterministisch gewählt, typischerweise über Polvorgabe. Rauscheinflüsse werden nicht explizit berücksichtigt. Beim Kalman-Filter ergibt sich der Verstärkungsfaktor als Lösung eines Optimierungsproblems und wird in jedem Zeitschritt neu berechnet. Dabei werden Unsicherheiten systematisch über Kovarianzmatrizen modelliert.\\
-Im Rahmen des Verbundprojekts wurden die Reglerstruktur sowie die Berechnungsgrundlagen so ausgelegt, dass eine spätere Erweiterung auf eine zur Laufzeit veränderliche Beobachterverstärkung ohne größeren Aufwand möglich wäre. Darüber hinaus wurde der Algorithmus des Kalman-Filters bereits implementiert und für den Einsatz vorbereitet. Im Zuge der Untersuchungen zeigte sich jedoch, dass das Messrauschen der Kamera sehr gering ist und der Messfehler nur minimale Schwankungen aufweist. Da ein Kalman-Filter seine Vorteile insbesondere bei verrauschten Messsignalen ausspielt, ist unter diesen Randbedingungen lediglich ein geringer zusätzlicher Nutzen zu erwarten. Zusätzlich ist die Aktualisierungsrate der Kamera im Vergleich zur Zykluszeit der Regelungssoftware von \SI{0.3333}{\milli\second} sehr niedrig. Somit stehen nur vergleichsweise selten neue Messwerte zur Verfügung, wodurch das Potenzial einer optimierten Zustandsschätzung weiter eingeschränkt wird. Darüber hinaus erfordert die Parametrierung eines Kalman-Filters eine sorgfältige Abstimmung der Prozess- und Messrauschkovarianzen. Da unter den gegebenen Hardwarebedingungen kein nennenswerter Genauigkeitsgewinn zu erwarten war, wurde auf eine weitere Optimierung des Kalman-Filters verzichtet. Stattdessen wurde eine deterministische Auslegung der Beobachterverstärkung gewählt, die ein vorhersehbares Verhalten ermöglicht und die Anforderungen der Anwendung bereits vollständig erfüllt.
+Im Rahmen des Verbundprojekts wurden die Reglerstruktur sowie die Berechnungsgrundlagen so ausgelegt, dass eine spätere Erweiterung auf eine zur Laufzeit veränderliche Beobachterverstärkung ohne größeren Aufwand möglich wäre. Darüber hinaus wurde der Algorithmus des Kalman-Filters bereits implementiert und für den Einsatz vorbereitet. Im Zuge der Untersuchungen zeigte sich jedoch, dass das Messrauschen der Kamera verhältnissmäßig gering ist und der Messfehler nur kleinere Schwankungen aufweist. Da ein Kalman-Filter seine Vorteile insbesondere bei verrauschten Messsignalen ausspielt, ist unter diesen Randbedingungen lediglich ein geringer zusätzlicher Nutzen zu erwarten. Zusätzlich ist die Aktualisierungsrate der Kamera im Vergleich zur Zykluszeit der Regelungssoftware von \SI{0.3333}{\milli\second} sehr niedrig. Somit stehen nur vergleichsweise selten neue Messwerte zur Verfügung, wodurch das Potenzial einer optimierten Zustandsschätzung weiter eingeschränkt wird. Darüber hinaus erfordert die Parametrierung eines Kalman-Filters eine sorgfältige Abstimmung der Prozess- und Messrauschkovarianzen. Da unter den gegebenen Hardwarebedingungen kein nennenswerter Genauigkeitsgewinn zu erwarten war, wurde auf eine weitere Optimierung des Kalman-Filters verzichtet. Stattdessen wurde eine deterministische Auslegung der Beobachterverstärkung gewählt, die ein vorhersehbares Verhalten ermöglicht und die Anforderungen der Anwendung bereits vollständig erfüllt.
 % -------------------------------------------------------------------------------- %
 % Modell Validierung
 % -------------------------------------------------------------------------------- %
@@ -297,7 +297,7 @@ Für die Regler Parametrierung soll nun eine Fahrt betrachtet werden, in der der
     \caption{Beobachter mit direktem Ausgleich Gesammt}
     \label{fig:Obs_L1_Gesammt}
 \end{figure}
-In Abbildung \ref{fig:Obs_L1_Ausgleich} ist der Zeitberich um den Ausgleich nochmal vergrößert dargestellt. Wie man hier gut erkennen kann, wurde der Gain der Rückführung hier auf eins gesetzt, was besonders durch die schnellen Zycluszeiten des Programms zu einem quasi direkten Ausgleich bei erhalt eines neuen Kammeramesswerts führt.
+In Abbildung \ref{fig:Obs_L1_Ausgleich} ist der Zeitberich um den Ausgleich nochmal vergrößert dargestellt. Wie man hier gut erkennen kann, wurde die Verstärkung der Rückführung hier auf eins gesetzt, was besonders durch die schnellen Zycluszeiten des Programms zu einem quasi direkten Ausgleich bei erhalt eines neuen Kammeramesswerts führt.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Grafiken/Obs_L1_Ausgleich.pdf}
@@ -312,7 +312,7 @@ Betrachtet man den gleichen Versuch nochmal für einen deutlich geringere Verst�
     \label{fig:Obs_L01_Ausgleich}
 \end{figure}
 Zu guter Letzt soll anhand von Abbildung \ref{fig:Obs_VarGain_Gesammt} untersucht werden, ob durch eine vom Kamerafehler abhängige variable Beobachterverstärkung eine weitere Verbesserung des Beobachterverhaltens erreicht werden kann. Die zugrunde liegende Idee orientiert sich an einem vereinfachten Grundgedanken des Kalman-Filters. Besitzt die Kamera eine hohe Messgüte, soll den Messwerten ein höheres Vertrauen entgegengebracht werden. Nimmt die Qualität der Messung hingegen ab, soll der Beobachter stärker auf das zugrunde liegende Modell zurückgreifen.
-Da der von der Kamera bereitgestellte Fehlerindikator direkt verfügbar ist, bietet sich dessen Verwendung zur Anpassung der Beobachterverstärkung an. Hierzu wird der Kamerafehler eee auf einen geeigneten Wertebereich normiert und zur Skalierung der Verstärkung herangezogen.
+Da der von der Kamera bereitgestellte Fehlerindikator direkt verfügbar ist, bietet sich dessen Verwendung zur Anpassung der Beobachterverstärkung an. Hierzu wird der Kamerafehler $e$ auf einen geeigneten Wertebereich normiert und zur Skalierung der Verstärkung herangezogen.
 Zur Umsetzung wird ein Schwellwert $E_{th}=5$ eingeführt. Dieser Wert entspricht dem maximal beobachteten Kamerafehler, bei dem in der Anlagensimulation noch kein vollständiger Ausfall der Kamera festgestellt wurde. Für Fehlerwerte im Bereich $E_{th}0<e<E{th}$ wird die Beobachterverstärkung proportional zum normierten Fehler $E_{th}$ skaliert. Dadurch erfolgt eine kontinuierliche Anpassung der Verstärkung in Abhängigkeit von der Qualität der Kameramessung.
 Überschreitet der Kamerafehler den Schwellwert $E_{th}$, wird von einem fehlerhaften beziehungsweise nicht mehr vertrauenswürdigen Kamerasignal ausgegangen. Um eine übermäßige Beeinflussung des Beobachters durch fehlerhafte Messwerte zu vermeiden, wird die Verstärkung in diesem Fall auf einen empirisch bestimmten Maximalwert begrenzt. Die resultierende Verstärkung ergibt sich damit zu
 
