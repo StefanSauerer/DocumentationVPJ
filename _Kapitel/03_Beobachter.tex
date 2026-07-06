@@ -8,13 +8,9 @@ Um dies zu ermöglichen müssen zwei Dinge passieren. Zuersteinmal werden immer 
 % latenzmessung
 % -------------------------------------------------------------------------------- %
 \section{Latenzmessung}
-Die Positionsregelung des omnidirektionalen Roboters wird vollständig auf der internen Steuerung realisiert. Die Rückführung der Roboterposition erfolgt über eines externes Kamerasystems. Aufgrund der unterschiedlichen Abtastraten sowie zusätzlicher Verzögerungen durch Bildaufnahme, Bildverarbeitung und Datenübertragung entsteht zwischen der tatsächlichen Bewegung des Roboters und der bereitgestellten Positionsinformation ein zeitlicher Versatz. Für die weitere Arbeit ist die Kenntnis dieser Systemlatenz von entscheidender Bedeutung. Da die Größe dieser Verzögerung im Vorfeld nicht bekannt war, musste sie experimentell bestimmt werden. Hierzu wurde der Roboter entlang einer einzelnen Koordinatenachse im eigenen Koordinatensystem mit einer sinusförmigen Bewegung angeregt. Die resultierende Bewegung wurde einerseits durch das Kamerasystem erfasst und andererseits aus den gemessenen Motordrehzahlen beziehungsweise den Inkrementalgebern der Antriebe bestimmt. Durch den Vergleich beider Signalverläufe lässt sich der zeitliche Versatz zwischen der onboard berechneten Roboterbewegung und der externen Positionserfassung bestimmen. Als Anregungssignal wurde eine Sinusbewegung gewählt, da periodische Signale eine präzise Latenzbestimmung ermöglichen. Insbesondere besitzen sie eindeutig definierte Nullstellen, deren zeitliche Lage bereits bei geringen Verzögerungen messbar verschoben wird. 
-So wird die Systemlatenz wird durch den zeitlichen Vergleich der Nullstellen beider Geschwindigkeitssignale bestimmt.
+Für die Auslegung des Beobachters ist die Kenntnis der Verzögerung zwischen der tatsächlichen Roboterbewegung und der vom Kamerasystem bereitgestellten Position erforderlich. Da diese Systemlatenz im Vorfeld nicht bekannt war, wurde sie experimentell bestimmt. Hierzu wurde der Roboter entlang einer einzelnen Koordinatenachse im eigenen Koordinatensystem mit einer periodischen Bewegung angeregt. Die resultierende Bewegung wurde einerseits durch das Kamerasystem erfasst und andererseits aus den gemessenen Motordrehzahlen beziehungsweise den Inkrementalgebern der Antriebe bestimmt. Durch den Vergleich beider Signalverläufe lässt sich der zeitliche Versatz zwischen der onboard berechneten Roboterbewegung und der externen Positionserfassung bestimmen. Durch die regelmäßig auftretenden Richtungswechsel ergeben sich eindeutig bestimmbare Nullstellen der Geschwindigkeitssignale. Die Systemlatenz wird durch den zeitlichen Vergleich dieser Nullstellen beider Signale ermittelt. . Zur Erfassung der Messdaten wurde die Software Beckhoff TwinCAT Scope View eingesetzt. Die Konfiguration der Messaufzeichnung erfolgte mithilfe des Scope Wizards, über den die relevanten Prozesssignale ausgewählt und die Aufzeichnungsparameter festgelegt wurden. Die Kommunikation mit der Steuerung erfolgte über einen bereitgestellten offenen Port, wodurch die Signale der Main Motor Task während des Anlagenbetriebs aufgezeichnet werden konnten. Während der Messungen wurden die für die Auswertung erforderlichen Größen (die Drehzahlen aller drei Antriebsmotoren sowie die vom Kamerasystem erfassten Positionen des Roboters in X-, Y- und Rotationsrichtung), synchron erfasst. Nach Abschluss der Messungen wurden die aufgezeichneten Datensätze aus TwinCAT Scope View in das CSV-Format exportiert. Anschließend erfolgte der Import der Messdaten in MATLAB, wo die weitere Datenvorverarbeitung, Signalverarbeitung und Auswertung durchgeführt wurde. Die MATLAB-Skripte dienten dabei sowohl der Berechnung der Roboterbewegung aus den Motordrehzahlen als auch der Bestimmung der Systemlatenz durch den Vergleich mit den vom Kamerasystem aufgezeichneten Messdaten. Messwertausfälle des Kamerasystems werden durch lineare Interpolation ersetzt, um kontinuierliche Signalverläufe zu erhalten. Da beim Berechnen der Bewegung vorhandenes Messrauschen störenden Einfluss hat, werden sämtliche Signale zusätzlich mit einem Tiefpassfilter zweiter Ordnung mit einer Grenzfrequenz von \SI{2}{\hertz} gefiltert. Anschließend werden aus den Motordrehzahlen mithilfe der Vorwärtskinematik die translatorischen Geschwindigkeiten in X- und Y-Richtung sowie die Winkelgeschwindigkeit des Roboters berechnet. Die zugrunde liegenden Zusammenhänge entspechen denen aus Gleichung  \textcolor{red}{3.8??} 
 
-
-Zur Erfassung der Messdaten wurde die Software Beckhoff TwinCAT Scope View eingesetzt. Die Konfiguration der Messaufzeichnung erfolgte mithilfe des Scope Wizards, über den die relevanten Prozesssignale ausgewählt und die Aufzeichnungsparameter festgelegt wurden. Die Kommunikation mit der Steuerung erfolgte über einen bereitgestellten offenen Port, wodurch die Signale der Main Motor Task während des Anlagenbetriebs aufgezeichnet werden konnten. Während der Messungen wurden die für die Auswertung erforderlichen Größen (die Drehzahlen aller drei Antriebsmotoren sowie die vom Kamerasystem erfassten Positionen des Roboters in X-, Y- und Rotationsrichtung), synchron erfasst. Nach Abschluss der Messungen wurden die aufgezeichneten Datensätze aus TwinCAT Scope View in das CSV-Format exportiert. Anschließend erfolgte der Import der Messdaten in MATLAB, wo die weitere Datenvorverarbeitung, Signalverarbeitung und Auswertung durchgeführt wurde. Die MATLAB-Skripte dienten dabei sowohl der Berechnung der Roboterbewegung aus den Motordrehzahlen als auch der Bestimmung der Systemlatenz durch den Vergleich mit den vom Kamerasystem aufgezeichneten Messdaten. Messwertausfälle des Kamerasystems werden durch lineare Interpolation ersetzt, um kontinuierliche Signalverläufe zu erhalten. Da beim Berechnen der Bewegung vorhandenes Messrauschen störenden Einfluss hat, werden sämtliche Signale zusätzlich mit einem Butterworth-Tiefpassfilter zweiter Ordnung mit einer Grenzfrequenz von \SI{2}{\hertz} gefiltert. Anschließend werden aus den Motordrehzahlen mithilfe der Vorwärtskinematik die translatorischen Geschwindigkeiten in X- und Y-Richtung sowie die Winkelgeschwindigkeit des Roboters berechnet. Die zugrunde liegenden Zusammenhänge entspechen denen aus Gleichung \ref{eq:Vorwärtsmatrix}.
-
-Je nach Einheit der aufgezeichneten Motordrehzahlen erfolgt anschließend die Umrechnung in konsistente SI-Einheiten. Die Geschwindigkeiten des Kamerasystems werden durch Differentiation der aufgezeichneten Positionsdaten bestimmt. Hierzu wird die MATLAB-Funktion \texttt{gradient()} verwendet. Zur Überprüfung der Berechnung und des Einflusses der Tiefpassfilterung werden die aus den Motordrehzahlen bestimmten Geschwindigkeiten mit den aus den Kamerapositionen berechneten Geschwindigkeiten verglichen. Abbildung~\ref{fig:gefilterte_signale} zeigt die gefilterten und ungefilterten Signalverläufe. 
+Die Geschwindigkeiten des Kamerasystems werden durch Differentiation der aufgezeichneten Positionsdaten bestimmt. Hierzu wird die MATLAB-Funktion \texttt{gradient()} verwendet. Zur Überprüfung der Berechnung und des Einflusses der Tiefpassfilterung werden die aus den Motordrehzahlen bestimmten Geschwindigkeiten mit den aus den Kamerapositionen berechneten Geschwindigkeiten verglichen. Abbildung~\ref{fig:gefilterte_signale} zeigt die gefilterten und ungefilterten Signalverläufe. 
 
 
 \begin{figure}[H]
@@ -24,7 +20,9 @@ Je nach Einheit der aufgezeichneten Motordrehzahlen erfolgt anschließend die Um
     \label{fig:gefilterte_signale}
 \end{figure}
 
-Bereits aus den Positionsverläufen ist außerdem zu erkennen, dass der Roboter bei einer offenen Ansteuerung ohne Positionsregelung eine kontinuierliche Drift aufweist. Ursache hierfür sind unter anderem Reibungseinflüsse und unsymmetrische Abnutzung der Räder. Dadurch entsteht während der Bewegung eine langsame Rotation des Roboters, wodurch zusätzlich ein Bewegungsanteil in Y-Richtung entsteht. In Abbildung~\ref{fig:positionsdrift} ist dieser Effekt nochmal besser an dem Verlauf der Position in X und Y- Richtung zu erkennen.
+Bereits aus den Positionsverläufen ist außerdem zu erkennen, dass der Roboter bei einer offenen Ansteuerung ohne Positionsregelung eine kontinuierliche Drift aufweist. Ursache hierfür sind unter anderem Reibungseinflüsse und unsymmetrische Abnutzung der Räder. Dadurch entsteht während der Bewegung eine langsame Rotation des Roboters, wodurch zusätzlich ein Bewegungsanteil in Y-Richtung entsteht. In Abbildung~\ref{fig:positionsdrift}ist die Bewegung der einzelnen Motoren und der Verlauf des Winkel, sowie der X und Y- Position dargestellt.
+Der Drift Effekt lässt sich aus dem Verlauf der Position in X und Y- Richtung gut erkennen.
+
 
 
 \begin{figure}[H]
@@ -34,9 +32,9 @@ Bereits aus den Positionsverläufen ist außerdem zu erkennen, dass der Roboter 
     \label{fig:positionsdrift}
 \end{figure}
 
-Zur Bestimmung der Systemlatenz werden die Nullstellen der aus den Motordrehzahlen berechneten sowie der aus den Kamerapositionen bestimmten Geschwindigkeitssignale ausgewertet. Da sich die tatsächlichen Nullstellen in der Regel zwischen zwei diskreten Messpunkten befinden, wird ihre exakte Lage mithilfe einer linearen Interpolation bestimmt. Die Zeitdifferenz entsprechender Nullstellen entspricht unmittelbar der Systemlatenz. Durch die sinusförmige Testbewegung entstehen zahlreiche Nullstellen, wodurch mehrere unabhängige Latenzmessungen durchgeführt werden können. Aus diesen Einzelwerten werden der Mittelwert und die Standardabweichung berechnet. Der Mittelwert beschreibt die mittlere Systemlatenz, während die Standardabweichung die zeitliche Streuung der Messwerte angibt. Geringe Schwankungen können unter anderem durch Unterschiede in der Bildverarbeitung sowie numerische Einflüsse bei der Signalverarbeitung entstehen.
-Der Nulstellenvergleich ist  in Abbildung~\ref{fig:nullstellenvergleich} nochmals Veranschaulicht. Es ist auch ersichtlich, dass der Roboter deine X-Position in seinen eigenen Koordinaten als konstant nimmt, während diese in den durch die Kamera aufgezeichneten Weltkoordinaten driftet. 
-Da nur die Nullstellen von Relevanz sind, ist dies relevant. 
+Zur Bestimmung der Systemlatenz werden die Nullstellen der aus den Motordrehzahlen berechneten sowie der aus den Kamerapositionen bestimmten Geschwindigkeitssignale ausgewertet. Da sich die tatsächlichen Nullstellen in der Regel zwischen zwei diskreten Messpunkten befinden, wird ihre exakte Lage mithilfe einer linearen Interpolation bestimmt. Die Zeitdifferenz entsprechender Nullstellen entspricht unmittelbar der Systemlatenz.Durch die periodische Testbewegung entstehen zahlreiche Nullstellen, wodurch mehrere unabhängige Latenzmessungen durchgeführt werden können. Aus diesen Einzelwerten werden der Mittelwert und die Standardabweichung berechnet. Der Mittelwert beschreibt die mittlere Systemlatenz, während die Standardabweichung die zeitliche Streuung der Messwerte angibt. Geringe Schwankungen können unter anderem durch Unterschiede in der Bildverarbeitung sowie numerische Einflüsse bei der Signalverarbeitung entstehen.
+Der Nulstellenvergleich ist  in Abbildung~\ref{fig:nullstellenvergleich} nochmals Veranschaulicht. Es ist auch ersichtlich, dass der Roboter deine X-Position in seinen eigenen Koordinaten als Konstant nimmt, während diese in den durch die Kamera aufgezeichneten Weltkoordinaten driftet. 
+Da nur die Nullstellen von Relevanz sind, ist dies für die Latenzbestimmung aber irrelevant. 
 
 \begin{figure}[H]
     \centering
@@ -46,7 +44,7 @@ Da nur die Nullstellen von Relevanz sind, ist dies relevant.
 \end{figure}
 
 
-Zur Bestimmung der Systemlatenz wurden mehrere Messungen unter identischen Versuchsbedingungen durchgeführt und mithilfe der entwickelten MATLAB-Auswertung analysiert. Die Ergebnisse der einzelnen Messungen stimmen gut überein und zeigen, dass die Verzögerung zwischen der Roboterbewegung und der kamerabasierten Positionserfassung weitgehend konstant ist. Bei einer exemplarischen Messung wurde eine mittlere Latenz von \SI{100.732}{\milli\second} sowie eine Standardabweichung von \SI{20.786}{\milli\second} ermittelt. Zwischen den einzelnen Messungen traten zwar geringe Unterschiede auf, die gemessenen Mittelwerte lagen jedoch alle in einer ähnlichen Größenordnung. Daher wurde für die weitere Auswertung und Parametrierung des Systems eine konstante Systemlatenz von \SI{100}{\milli\second} angenommen. Die Standardabweichung von rund \SI{21}{\milli\second} weist auf eine geringe Streuung der Messergebnisse hin und bestätigt die Reproduzierbarkeit der entwickelten Messmethode.
+Zur Bestimmung der Systemlatenz wurden mehrere Messungen unter identischen Versuchsbedingungen durchgeführt und mithilfe der entwickelten MATLAB-Auswertung analysiert. Die Ergebnisse der einzelnen Messungen stimmen gut überein und zeigen, dass die Verzögerung zwischen der Roboterbewegung und der kamerabasierten Positionserfassung weitgehend konstant ist. Bei einer exemplarischen Messung wurde eine mittlere Latenz von \SI{0.100732}{\second} sowie eine Standardabweichung von \SI{0.020786}{\second} ermittelt. Zwischen den einzelnen Messungen traten zwar geringe Unterschiede auf, die gemessenen Mittelwerte lagen jedoch alle in einer ähnlichen Größenordnung. Daher wurde für die weitere Auswertung und Parametrierung des Systems eine konstante Systemlatenz von \SI{100}{\milli\second} angenommen. Die Standardabweichung von rund \SI{21}{\milli\second} weist auf eine geringe Streuung der Messergebnisse hin und bestätigt die Reproduzierbarkeit der entwickelten Messmethode.
 % -------------------------------------------------------------------------------- %
 % Kinematisches Beobachtermodell
 % -------------------------------------------------------------------------------- %
@@ -107,24 +105,24 @@ Um die Gesamtgeschwindigkeit des Roboters zu berechnen, müssen die Beiträge al
 \begin{equation}
     \vec{V}_1^{wheel} = 
     \begin{bmatrix}
-    \frac{V_{w3}}{\sqrt{3}} - \frac{V_{w2}}{\sqrt{3}} \\
-    V_{w1}
+    \frac{V_{M3}}{\sqrt{3}} - \frac{V_{M2}}{\sqrt{3}} \\
+    V_{M1}
     \end{bmatrix}
 \end{equation}
 \\
 \begin{equation}
     \vec{V}_2^{wheel} = 
     \begin{bmatrix}
-    \frac{V_{w1}}{\sqrt{3}} - \frac{V_{w3}}{\sqrt{3}}\\
-    V_{w2}
+    \frac{V_{M1}}{\sqrt{3}} - \frac{V_{M3}}{\sqrt{3}}\\
+    V_{M2}
     \end{bmatrix} \\
 \end{equation}
 \\
 \begin{equation}
     \vec{V}_3^{wheel} = 
     \begin{bmatrix}
-    \frac{V_{w2}}{\sqrt{3}} - \frac{V_{w1}}{\sqrt{3}}\\
-    V_{w3}
+    \frac{V_{M2}}{\sqrt{3}} - \frac{V_{M1}}{\sqrt{3}}\\
+    V_{M3}
     \end{bmatrix}
 \end{equation}
 
@@ -132,25 +130,25 @@ Die zweite Zeile beschreibt die Geschwindigkeit entlang der Rollrichtung des jew
 Diese lokalen Geschwindigkeiten werden dann, über die Rotationsmatrix, in das Roboterkoordinatensystem transformiert:\\
 
 \begin{equation}
-\vec{V}_j = \mathbf{R(\alpha_j)}\,\vec{V}_j^{(w)}
+\vec{V}_j = \mathbf{R(\alpha_j)}\,\vec{V}_{Mj}
 \end{equation}
 
 mit der Rotationsmatrix:
 
 \begin{equation}
 \mathbf{R(\alpha_j)} =
-\begin{bmatrix}
-\cos\alpha_j & -\sin\alpha_j \\
-\sin\alpha_j & \cos\alpha_j
-\end{bmatrix}
+    \begin{bmatrix}
+    \cos\alpha_j & -\sin\alpha_j \\
+    \sin\alpha_j & \cos\alpha_j
+    \end{bmatrix}
 \end{equation}
 
 Die Gesamtgeschwindigkeit des Roboters ergibt sich als Mittelwert aller drei Räder:
 
 \begin{equation}
 \begin{bmatrix}
-\dot{x}_R \\
-\dot{y}_R \\
+\dot{x}_r \\
+\dot{y}_r \\
 \end{bmatrix}
 =
 \frac{1}{3} \sum_{j=1}^{3}
@@ -160,7 +158,7 @@ Die Gesamtgeschwindigkeit des Roboters ergibt sich als Mittelwert aller drei Rä
 Und die Rotationsgeschwindigkeit ergibt sich ebenfalls aus dem Mittelwert der drei Raddrehzahlen, wobei der Radius des Roboters $R$ berücksichtigt wird:
 
 \begin{equation}
-\dot{\theta} = \frac{1}{3R}(V_{w1} + V_{w2} + V_{w3})
+\dot{\theta} = \frac{1}{3R}(V_{M1} + V_{M2} + V_{M3})
 \end{equation}
 
 Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen die Winkelwerte $\alpha_1 = 60^\circ$, $\alpha_2 = 180^\circ$ und $\alpha_3 = 300^\circ$ in die Rotationsmatrizen eingesetzt werden.Nach Ausmultiplizieren der Summe ergibt sich die folgende kompakte Matrixdarstellung:
@@ -178,9 +176,9 @@ Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen d
 		\frac{1}{3R} & \frac{1}{3R} & \frac{1}{3R}
     \end{bmatrix}
     \begin{bmatrix}
-        V_{\omega1} \\
-        V_{\omega2} \\
-        V_{\omega3}
+        V_{M1} \\
+        V_{M2} \\
+        V_{M3}
     \end{bmatrix}
     \label{eq:Vorwärtsmatrix}
 \end{equation}
