@@ -1,9 +1,21 @@
 \chapter{Einleitung}   
-    Im Verbundsprojekt 25/26 im Master Automatisierung erarbeiten 11 Studierende gemeinsam eine autonome Eisfabrik. Die Aufträge werden dabei von selbstfahrenden Robotern ausgeführt. Die Teilnehmenden werden vor dem Start in 4 Gewerke aufgeteilt.
+    Im Verbundsprojekt 25/26 im Master Automatisierung erarbeiten 11 Studierende gemeinsam eine autonome Eisfabrik. Die Aufträge werden dabei von selbstfahrenden Robotern ausgeführt. Die Teilnehmenden werden vor dem Start in 4 Gewerke aufgeteilt. Die Gewerke haben dabei folgende Aufgaben:\\
+    \\
+    \textbf{Gewerk 1}
+    Koordination der Ressourcen und Aufträge, Erstellung einer GUI für die Eingabe von Kundenwünschen
+    \textbf{Gewerk 2}
+    Bahnplanung der bestehenden Aufträge und Vermeiden von Kollisionen der Roboter miteinander und mit der Fabrik
+    \textbf{Gewerk 3}
+    Umsetzung des geplanten Fahrtweges, Bahn- und Positionstreue sicherstellen, Live-Position ermitteln
+    \textbf{Gewerk 4}
+    Powermanagement und Akkuschutz
+   
+    Abbildung \ref{fig:motivation} zeigt, wie der Roboter ohne Regelung beim Hin- und Herfahren schon nach kürzester Zeit seine grade Linie verlässt, und sich bereits nach 60 Sekunden fast senkrecht zu seiner ursprünglichen Fahrtrichtung (rote Linie) bewegt. Diese durch Störungen im Motor und bei der Kräfteübertragung von Roboter zu Boden entstehende Abweichung auszuregeln ist Kernaufgabe von Gewerk 3.
+
     \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{_Bilder/motivation.png}
-    \caption{Anfahrweise einer Station in y-Richtung}
+    \caption{Ungeregelte Roboterfahrt über 60 Sekunden}
     \label{fig:motivation}
     
 \end{figure}

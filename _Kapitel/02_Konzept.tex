@@ -2,24 +2,15 @@
 Das Konzept zur Erfüllung der Aufgaben von Gewerk 3 wurden in enger Zusammenarbeit mit Gewerk 2 erstellt. Schon in den ersten Wochen des Projektes hat sich Gewerk 2 für ein Gradientenverfahren entschieden, um die Bahnplanung und die Kollisionvermeidung zu realisieren. Als Reaktion auf dieses Vorhaben wurden dann konzeptionell zwei Ansätze verfolgt:\\
 Für die freie Fahrt - also alle Bereiche außerhalb der Taschenbereiche - wird von Gewerk 2 ein Geschwindigkeitssollwert und eine Richtung übermittelt. Dieser Sollwert muss von einem Geschwindigkeitsregler umgesetzt werden. Dieser Modus heißt Vektorregelung. Ein Positionsregler wird in diesem Modus nicht benötigt.\\
 Für die Taschenbereiche - also dort wo hohe Präzision verlangt wird - wird von Gewerk 2 ein Positionssollwert übermittelt. Dieser Sollwert muss von einem Positionsregler umgesetzt werden. Dieser Positionsregler generiert basierend auf der aktuellen Position ein Geschwindigkeitssollwert. Dieser wird dann an den Geschwindigkeitsregler weitergeleitet. Dieser Modus heißt Positionregelung.\\
-In beiden Modi wird die aktuelle Position der Roboter durch einen Beobachter geschätzt. Die aktuelle Position wird entweder an Gewerk 2 übermittelt (Vektorregelung) oder mit der Sollposition (Positionregelung) verglichen. Der Beobachter wird von Gewerk 3 implementiert und getunt.\\
-\section{Blockschaltbild}
-Wie bereits beschrieben, werden zwei Regelungsmodi implementiert. In Abbildung \ref{fig:BlockschaltbildPosition} ist das Blockschaltbild der Positionregelung dargestellt. In Abbildung \ref{fig:BlockschaltbildGeschwindigkeit} ist das Blockschaltbild der Geschwindigkeitsregelung dargestellt.\\
-Bei der Geschwindigkeitsregelung wird der Sollwert für die Geschwindigkeit und die Richtung von Gewerk 2 übermittelt. Dies muss dann in Roboterkoordinaten und schlussendlich in Radgeschwindigkeiten umgesetzt werden. Anschließend kommt, innerhalb der Kaskadenregelung, die Regelung der Radgeschwindigkeiten.Die untere Hälfte der Abbildung zeigt das Grundprinzip des Beobachters, welcher aus der Radgeschwindigkeit die aktuelle Position des Roboters schätzt. Diese Position wird dann an Gewerk 2 übermittelt.\\
+In beiden Modi wird die aktuelle Position der Roboter durch einen Beobachter geschätzt. Die aktuelle Position wird entweder an Gewerk 2 übermittelt (Vektorregelung) oder mit der Sollposition (Positionregelung) verglichen. Der Beobachter wird von Gewerk 3 implementiert und getunt. Abbildung \ref{fig:Blockschaltbild} zeigt ein Blockschaltbild des verfolgten Konzepts.\\
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{_Bilder/BlockschaltbildGeschwindigkeit.png}
-    \caption{Blockschaltbild der Geschwindigkeitsregelung}
-    \label{fig:BlockschaltbildGeschwindigkeit}
+    \includegraphics[width=\textwidth]{_Bilder/Blockschaltbild.png}
+    \caption{Blockschaltbild der Bahnregelung. Komponenten der Vektorregelung in rot und Komponenten der Positionsregelung in blau}
+    \label{fig:Blockschaltbild}
 \end{figure}
-Bei der Positionsregelung ist grundsätzlich das gleiche Prinzip wie bei der Geschwindigkeitsregelung zu erkennen. Hier wird jedoch also Sollwert eine Zielposition übermittelt. Diese Zielposition wird dann mit der aktuellen Position verglichen und daraus ein Sollwert für die Geschwindigkeit und Richtung berechnet. Der Regler gibt dann bei Erreichen der Zielposition den Status "Ziel erreicht" an Gewerk 2 zurück. 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{_Bilder/BlockschaltbildPosition.png}
-    \caption{Blockschaltbild der Positionregelung}
-    \label{fig:BlockschaltbildPosition}
-\end{figure}
+
 \section{Schnittstellen}
 \label{sec:Schnittstellen}
 Die Kommunikation zwischen der Bahnplanung (Gewerk 2) und der Robotersteuerung (Gewerk 3) erfolgt über zwei definierte Datenschnittstellen. Über die Schnittstelle von Gewerk 2 zu Gewerk 3 werden Bewegungsaufträge in Form von Fahrvektoren oder Zielpositionen sowie Steuerbefehle zur Ausführung übertragen. Die Robotersteuerung wertet diese Informationen aus und setzt die entsprechenden Bewegungen um.
@@ -34,12 +25,12 @@ Die Kommunikation zwischen der Bahnplanung (Gewerk 2) und der Robotersteuerung (
     \quad Int & inGeschwindigk. & Fahrgeschwindigkeit \\
     Int & inControl & 0=idle, 1=Stop, 2=Reset, 3=Vektor, 4=Position \\
     struct & sPositions & \\
-    \quad Int & inX & X-Position \\
-    \quad Int & inY & Y-Position \\
+    \quad Int & inX & x-Position \\
+    \quad Int & inY & y-Position \\
     \quad Real & inWinkel & Ausrichtung \\
     \bottomrule
     \end{tabular}
-    \caption{Gewerk 2 $\rightarrow$ Gewerk 3}
+    \caption{Schnittstellen Gewerk 2 $\rightarrow$ Gewerk 3}
 \end{table}
 In Gegenrichtung stellt die Robotersteuerung Informationen über die aktuell berechnete Roboterposition sowie den aktuellen Betriebszustand bereit. Dadurch erhält die Bahnplanung kontinuierlich Rückmeldungen über die Position des Roboters und den Fortschritt der ausgeführten Fahrbefehle. Die Trennung von Befehls- und Statusdaten ermöglicht eine klare Strukturierung der Kommunikation zwischen beiden Gewerken und vereinfacht die Erweiterung sowie Wartung des Gesamtsystems. 
 
@@ -57,7 +48,7 @@ In Gegenrichtung stellt die Robotersteuerung Informationen über die aktuell ber
     3=Ziel erreicht, 4=Fehler \\
     \bottomrule
     \end{tabular}
-    \caption{Gewerk 3 $\rightarrow$ Gewerk 2}
+    \caption{Schnittstellen Gewerk 3 $\rightarrow$ Gewerk 2}
 \end{table}
 
 \section{Interne Statemachine der Regelung}
