@@ -1,7 +1,7 @@
 \chapter{Regler}
 Das Kapitel arbeitet sich von der untersten Reglerebene am Rad bis zum übergeordneten Lageregler vor und folgt damit der Signalkette aus Abbildung Konzept in umgekehrter Richtung. Den Anfang macht der Drehzahlregler, der an jedem der drei Räder dafür sorgt, dass die vorgegebene Solldrehzahl anliegt. Da Gewerk 2 jedoch keine Raddrehzahlen, sondern eine Sollgeschwindigkeit des Roboters liefert, ist eine Transformation von Roboter in Motorkoordinaten nötig. Damit sind alle Bausteine für die Vektorfahrweise beisammen. Für die Positionsfahrweise kommt eine weitere Ebene hinzu: Die gemessene Position liegt in Weltkoordinaten vor und muss in das Roboterkoordinatensystem überführt werden. Darauf setzt schließlich der Lageregler auf, dessen Parameter über ein Gain-Scheduling an die jeweilige Situation angepasst werden, um eine zuverlässige Fahrt sicherzustellen.
 \section{Drehzahlregler}
-Der Drehzahlregler sorgt dafür, dass eine vorgegebene Sollgeschwindigkeit des Roboters auf die Motorbewegung der einzelnen Motoren übersetzt wird und korrekt umgesetzt wird. Der Drehzahlreger wird in TwinCAT als Funktionsbaustein umgesetzt. Als Eingangsgrößen werden Sollgeschwindigkeiten in X,Y, und $\varphi$ im Roboterkoordinatensystembenötigt. Außerdem werden die Istgeschwindigkeiten der einzelnen Motoren an den Eingang zurückgeführt. Der Ausgang ist das Geschwindigkeitessignal für die einzelnen drei Motoren. Abbildung \ref{fig:Drehzahlregler_BB} zeigt den Drehzahlregler als Blackbox mit Eingangs- und Ausgangssignalen.
+Der Drehzahlregler sorgt dafür, dass eine vorgegebene Sollgeschwindigkeit des Roboters auf die Motorbewegung der einzelnen Motoren übersetzt wird und korrekt umgesetzt wird. Der Drehzahlreger wird in TwinCAT als Funktionsbaustein umgesetzt. Als Eingangsgrößen werden Sollgeschwindigkeiten in X,Y, und $\theta$ im Roboterkoordinatensystembenötigt. Außerdem werden die Istgeschwindigkeiten der einzelnen Motoren an den Eingang zurückgeführt. Der Ausgang ist das Geschwindigkeitessignal für die einzelnen drei Motoren. Abbildung \ref{fig:Drehzahlregler_BB} zeigt den Drehzahlregler als Blackbox mit Eingangs- und Ausgangssignalen.
 
 \begin{figure}[H]
     \centering
@@ -11,7 +11,7 @@ Der Drehzahlregler sorgt dafür, dass eine vorgegebene Sollgeschwindigkeit des R
 \end{figure}
 \subsection{Ein- und Ausgangssignale}
 \textbf{targetVel}\\
-Die Target Velocity ist die Sollgeschwidigkeit des Roboters im Koordinatensystem des Roboters. Sie wird in m/s angegeben und besteht aus drei voneinander unabhängigen Komponenten: x, y und $\varphi$. Durch Überlagerung der Bewegungen dieser Komponenten ist der Roboter in der Lage sich in alle Richtungen im Raum zu bewegen.\\
+Die Target Velocity ist die Sollgeschwidigkeit des Roboters im Koordinatensystem des Roboters. Sie wird in m/s angegeben und besteht aus drei voneinander unabhängigen Komponenten: x, y und $\theta$. Durch Überlagerung der Bewegungen dieser Komponenten ist der Roboter in der Lage sich in alle Richtungen im Raum zu bewegen.\\
 \\
 \textbf{actualVelMotor}\\
 actualVelMotor1, -2 und -3 ist die Istgeschwindigkeit der einzelnen Motoren. Sie wird auch in m/s angegeben. Die Berechnung erfolgt über den Encoder des Motors und den Radumfang mit folgender Formel:
@@ -103,6 +103,7 @@ Der Geschwindigkeitsregler für die Radmotoren ist als PI-Regler ausgelegt. Er b
 
 \begin{table}[H]
     \centering
+    \caption{Parameter des Drehzahlreglers}
     \label{tab:Drehzahlregler_Parameter}
     \begin{tabular}{|l|l|}
         \hline
@@ -115,15 +116,15 @@ Der Geschwindigkeitsregler für die Radmotoren ist als PI-Regler ausgelegt. Er b
         diffConst & 0,001 \\
         \hline
     \end{tabular}
-    \caption{Parameter des Drehzahlreglers}
 \end{table}
 
 \begin{table}[H]
     \centering
+    \caption{Exemplarischer Ablauf des Drehzahlreglers in TwinCAT}
     \label{tab:Drehzahlregler_TwinCAT}
-    \begin{tabular}{|c|p{6cm}|p{8cm}|}
+    \begin{tabular}{|c|p{6cm}|p{7cm}|}
         \hline
-        \textbf{Schritt} & \textbf{Kurze Erläuterung} & \textbf{TwinCAT Code} \\
+        No. & \textbf{Kurze Erläuterung} & \textbf{TwinCAT Code} \\
         \hline
         1 & Bildung des Regelfehlers & \texttt{errorM1 := targetVelocityMotor1 - actualVelMotor1;} \\
         \hline
@@ -134,7 +135,6 @@ Der Geschwindigkeitsregler für die Radmotoren ist als PI-Regler ausgelegt. Er b
         4 & Skalierung des Ausgangswerts auf den vom Motor erwarteten Wertebereich & \texttt{velocityM1Controled := velocityM1Controled * skalPos;} \\
         \hline
     \end{tabular}
-    \caption{Exemplarischer Ablauf des Drehzahlreglers in TwinCAT}
 \end{table}
 \section{Positionsregler}
 Der Positionsregler sorgt dafür, dass eine vorgegebene Sollposition des Roboters korrekt angefahren wird. Für verschiedene Fahrsituationen wird mit einem Gain Scheduling verschiedenes Fahrverhalten realisiert. Der Positionsregler wird in TwinCAT als Funktionsbaustein umgesetzt. Als Eingangsgrößen werden Sollpositionen im Weltkoordinatensystem benötigt. Außerdem wird die Istposition im gleichen Koordinatensystem an den Eingang zurückgeführt. Für das Gain Scheduling sind auch die Reglerparameter als Eingangsgrößen veränderbar. Der Ausgang ist die Sollgeschwidigkeit im Roboterkoordinatensystem, welche an den Drehzahlregler aus dem vorherigen Abschnitt weitergeleitet wird. Abbildung \ref{fig:Positionsregler_BB} zeigt den Positionsregler als Blackbox mit Eingangs- und Ausgangssignalen.
@@ -148,10 +148,10 @@ Der Positionsregler sorgt dafür, dass eine vorgegebene Sollposition des Roboter
 
 \subsection{Ein- und Ausgangssignale}
 \textbf{TargetPosition}\\
-Die Target Position ist die Sollposition des Roboters im Weltkoordinatensystem. Sie besteht aus drei Komponenten; der x- und y-Position und $\varphi$-Ausrichtung. Der Positionsregler ist laut Konzept speziell für das Anfahren der Taschen im Nahbereich konzipiert. Somit ist er auf Target Positionen optimiert, welcher sich in der Nähe der aktuellen Position befinden. \\
+Die Target Position ist die Sollposition des Roboters im Weltkoordinatensystem. Sie besteht aus drei Komponenten; der x- und y-Position und $\theta$-Ausrichtung. Der Positionsregler ist laut Konzept speziell für das Anfahren der Taschen im Nahbereich konzipiert. Somit ist er auf Target Positionen optimiert, welcher sich in der Nähe der aktuellen Position befinden. \\
 \\
 \textbf{ActualPosition}\\
-Die Actual Position ist die Istposition des Roboters im Weltkoordinatensystem. Sie besteht ebenfalls aus drei Komponenten; der x- und y-Position und $\varphi$-Ausrichtung. Die Istposition wird von einem Beobachter (Kapitel 3) geschätzt, welcher die aktuelle Position aus den Sensordaten des Roboters berechnet.\\
+Die Actual Position ist die Istposition des Roboters im Weltkoordinatensystem. Sie besteht ebenfalls aus drei Komponenten; der x- und y-Position und $\theta$-Ausrichtung. Die Istposition wird von einem Beobachter (Kapitel 3) geschätzt, welcher die aktuelle Position aus den Sensordaten des Roboters berechnet.\\
 \\
 \textbf{KP, KI}\\  
 Um die Reglerparameter für verschiedene Fahrsituationen anpassen zu können, sind die beiden Parameter KP und KI als Eingangsgrößen veränderbar. Die Parameter werden in einem Gain Scheduling Algorithmus berechnet.\\
@@ -170,15 +170,15 @@ Der Positionsregler ist als P- bzw. PI-Regler ausgelegt. Er bildet aus den beide
     \label{fig:Positionsregler_Intern}
 \end{figure}
 
-Für die x- und y-Position sind die Reglerparameter KP und KI von außen verstellbar. Die Reglerung der $\varphi$-Achse ist als konstanter P-Regler ohne Integralanteil ausgelegt. Mehr dazu im Abschnitt \textit{Fahralgorithmus mit Gain-Scheduling}. Ein exemplarischer Ablauf des Positionsreglers in TwinCAT ist in Tabelle \ref{tab:Positionsregler_TwinCAT} dargestellt.
+Für die x- und y-Position sind die Reglerparameter KP und KI von außen verstellbar. Die Reglerung der $\theta$-Achse ist als konstanter P-Regler ohne Integralanteil ausgelegt. Mehr dazu im Abschnitt \textit{Fahralgorithmus mit Gain-Scheduling}. Ein exemplarischer Ablauf des Positionsreglers in TwinCAT ist in Tabelle \ref{tab:Positionsregler_TwinCAT} dargestellt.
 
 \begin{table}[H]
     \centering
     \label{tab:Positionsregler_TwinCAT}
     \caption{Exemplarischer Ablauf des Positionsreglers in TwinCAT}
-    \begin{tabular}{|c|p{6cm}|p{8cm}|}
+    \begin{tabular}{|c|p{6cm}|p{7cm}|}
         \hline
-        \textbf{Schritt} & \textbf{Kurze Erläuterung} & \textbf{TwinCAT Code} \\
+        \textbf{No.} & \textbf{Kurze Erläuterung} & \textbf{TwinCAT Code} \\
         \hline
         1 & Bildung des Positionsregelfehlers in x-Richtung & \texttt{error.reX := targetPos.reX - actualPos.reX;} \\
         \hline
@@ -192,7 +192,7 @@ Für die x- und y-Position sind die Reglerparameter KP und KI von außen verstel
 \subsection{Umrechnung von Welt- und Roboterkoordinaten}
 Die vom Positionsregler berechnete Sollgeschwindigkeit liegt zunächst im Weltkoordinatensystem vor (W\_X\_targetSpeed, W\_Y\_targetSpeed, W\_Theta\_targetSpeed), da auch die zugrunde liegende Positionsmessung (actualPos) im Weltkoordinatensystem erfolgt. Da der nachgelagerte Drehzahlregler jedoch eine Sollgeschwindigkeit im Koordinatensystem des Roboters (TargetVelocity) erwartet, muss die Sollgeschwindigkeit vor der Weitergabe entsprechend der aktuellen Orientierung des Roboters transformiert werden.
 
-\noindent{} Die Transformation erfolgt über eine Rotation um den aktuellen Orientierungswinkel des Roboters $\varphi_{\text{ist}}$ (\texttt{actualPos.reWinkel}). Für die translatorischen Geschwindigkeitskomponenten $\dot{x}$ und $\dot{y}$ ergibt sich damit folgende Drehmatrix:
+\noindent{} Die Transformation erfolgt über eine Rotation um den aktuellen Orientierungswinkel des Roboters $\theta_{\text{ist}}$ (\texttt{actualPos.reWinkel}). Für die translatorischen Geschwindigkeitskomponenten $\dot{x}$ und $\dot{y}$ ergibt sich damit folgende Drehmatrix:
 \begin{equation}
     \begin{bmatrix}
         \dot{x}_{\text{r}} \\
@@ -200,8 +200,8 @@ Die vom Positionsregler berechnete Sollgeschwindigkeit liegt zunächst im Weltko
     \end{bmatrix}
     =
     \begin{bmatrix}
-        \cos(\varphi) & -\sin(\varphi) \\
-        \sin(\varphi) & \cos(\varphi)
+        \cos(\theta) & -\sin(\theta) \\
+        \sin(\theta) & \cos(\theta)
     \end{bmatrix}
     \begin{bmatrix}
         \dot{x}_{\text{w}} \\
@@ -210,16 +210,16 @@ Die vom Positionsregler berechnete Sollgeschwindigkeit liegt zunächst im Weltko
 \end{equation}
 
 
-\noindent{} Die Winkelgeschwindigkeit $\dot{\varphi}$ (W\_Theta\_targetSpeed) bleibt von dieser Transformation unberührt, die Drehgeschwindigkeit des Roboters um seinen eigenen Mittelpunkt ist in beiden Koordinatensystemen identisch.\\
+\noindent{} Die Winkelgeschwindigkeit $\dot{\theta}$ (W\_Theta\_targetSpeed) bleibt von dieser Transformation unberührt, die Drehgeschwindigkeit des Roboters um seinen eigenen Mittelpunkt ist in beiden Koordinatensystemen identisch.\\
 Somit schließt sich für den Regler ein vierter Schritt an:
 
 \begin{table}[H]
     \centering
     \label{tab:Positionsregler_Transformation}
     \caption{Fortsetzung eines exemplarischen Ablaufs des Positionsreglers in TwinCAT}
-    \begin{tabular}{|c|p{6cm}|p{8cm}|}
+    \begin{tabular}{|c|p{6cm}|p{7cm}|}
         \hline
-        \textbf{Schritt} & \textbf{Kurze Erläuterung} & \textbf{TwinCAT Code} \\
+        \textbf{No.} & \textbf{Kurze Erläuterung} & \textbf{TwinCAT Code} \\
         \hline
         4 & Transformation der Sollgeschwindigkeit vom Welt- in das Roboterkoordinatensystem & 
         \texttt{R\_X\_targetSpeed := cos(actualPos.reWinkel) * W\_X\_targetSpeed - sin(actualPos.reWinkel) * W\_Y\_targetSpeed;}\\      
@@ -300,7 +300,7 @@ Die gegenläufige Anpassung von P- und I-Anteil vereint somit zwei Anforderungen
 Um Punkt 2 zu erfüllen, könnte man die Bewegungskoponenten in X- und Y-Richtung trennen und nacheinander abarbeiten. Dies würde jedoch gegen Punkt 1 verstoßen, da die Bewegung in X- und Y-Richtung nicht mehr schnell und flüssig wäre. Um sicherzustellen, dass die Tasche immer von vorne getroffen wird und trotzdem flüssig angefahren wird, wurde eine Schrittkette für das Anfahren mit unterschiedlichen Reglerparametern realisiert:\\
 \\
 \textbf{1. Ausrichtung des Winkels}
-Da die $\varphi$-Ausrichtung des Roboter mit in der Drehmatrix steckt, beeinflusst eine Änderung der Drehung auch die Bewegung in X- und Y-Richtung in Weltkoordinaten stark. Das gleichzeitige Fahren und Drehen ist daher schwer umzusetzten, vorallem in Bereichen wo hohe Präzision verlangt wird. Letzlich haben wir uns dazu entscheiden die Drehung im Stillstand auszuführen, sobald von Vektor- auf Positionsfahrweise gewechselt wird. Der Winkel wird über einen P-Regler mit konstantem KP geregelt. Das KP beträgt 1,5 und ist bewusst aggressiv gewählt, um möglichst wenig Zeit im Stillstand zu verbringen. Sobald der Winkel in einem bestimmten Bereich liegt, wird die Bewegung in X- und Y-Richtung im nächsten Schritt freigeschaltet\\
+Da die $\theta$-Ausrichtung des Roboter mit in der Drehmatrix steckt, beeinflusst eine Änderung der Drehung auch die Bewegung in X- und Y-Richtung in Weltkoordinaten stark. Das gleichzeitige Fahren und Drehen ist daher schwer umzusetzten, vorallem in Bereichen wo hohe Präzision verlangt wird. Letzlich haben wir uns dazu entscheiden die Drehung im Stillstand auszuführen, sobald von Vektor- auf Positionsfahrweise gewechselt wird. Der Winkel wird über einen P-Regler mit konstantem KP geregelt. Das KP beträgt 1,5 und ist bewusst aggressiv gewählt, um möglichst wenig Zeit im Stillstand zu verbringen. Sobald der Winkel in einem bestimmten Bereich liegt, wird die Bewegung in X- und Y-Richtung im nächsten Schritt freigeschaltet\\
 \\
 \textbf{2b. Ausrichtung der Lateralbewegung}
 Die Ausrichtung der Lateralbewegung hat eine höhere Priorität als die Ausrichtung der Vorwärtsbewegung, da die Tasche von vorne angefahren werden muss. Solange sich die Lateralposition noch nicht in einem Toleranzbereich befindet, wird die Vorwärtsbewegung gedrosselt. \\

@@ -160,7 +160,7 @@ Die Gesamtgeschwindigkeit des Roboters ergibt sich als Mittelwert aller drei Rä
 Und die Rotationsgeschwindigkeit ergibt sich ebenfalls aus dem Mittelwert der drei Raddrehzahlen, wobei der Radius des Roboters $R$ berücksichtigt wird:
 
 \begin{equation}
-\dot{\varphi} = \frac{1}{3R}(V_{w1} + V_{w2} + V_{w3})
+\dot{\theta} = \frac{1}{3R}(V_{w1} + V_{w2} + V_{w3})
 \end{equation}
 
 Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen die Winkelwerte $\alpha_1 = 60^\circ$, $\alpha_2 = 180^\circ$ und $\alpha_3 = 300^\circ$ in die Rotationsmatrizen eingesetzt werden.Nach Ausmultiplizieren der Summe ergibt sich die folgende kompakte Matrixdarstellung:
@@ -169,7 +169,7 @@ Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen d
     \begin{bmatrix}
         \dot{x}_r \\
         \dot{y}_r\\
-        \dot{\varphi}_r
+        \dot{\theta}_r
     \end{bmatrix}
     =
     \begin{bmatrix}
@@ -186,7 +186,7 @@ Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen d
 \end{equation}
 Die Herleitung dieser Gleichung kann auch nochmal mit der in \cite{Hacene2019} verglichen und nachgelesen werden.\\
 
-Die Umrechnung Geschwindigkeit in Weltkoordinaten erfolgt dabei wiefolgt, wobei $\varphi$ der aktuelle Winkel des Roboters im Raum ist:
+Die Umrechnung Geschwindigkeit in Weltkoordinaten erfolgt dabei wiefolgt, wobei $\theta$ der aktuelle Winkel des Roboters im Raum ist:
 \begin{equation}
     \begin{bmatrix}
         \dot{x}_w \\
@@ -194,8 +194,8 @@ Die Umrechnung Geschwindigkeit in Weltkoordinaten erfolgt dabei wiefolgt, wobei 
     \end{bmatrix}
     =
     \begin{bmatrix}
-        \cos(\varphi) & -\sin(\varphi) \\
-        \sin(\varphi) & \cos(\varphi)
+        \cos(\theta) & -\sin(\theta) \\
+        \sin(\theta) & \cos(\theta)
     \end{bmatrix}
     \begin{bmatrix}
         \dot{x}_r \\
@@ -208,19 +208,19 @@ Um schlussendlich die Position im Raum zu berechnen, integriert man die Geschwin
     \begin{bmatrix}
         x_{w, k+1} \\
         y_{w, k+1} \\
-        \varphi_{w,k+1}
+        \theta_{w,k+1}
     \end{bmatrix}
     =
     \begin{bmatrix}
         x_{w, k} \\
         y_{w, k} \\
-        \varphi_{w,k}
+        \theta_{w,k}
     \end{bmatrix} 
     + \Delta t \cdot
     \begin{bmatrix}
         \dot{x}_w \\
         \dot{y}_w \\
-        \dot{\varphi}_w
+        \dot{\theta}_w
     \end{bmatrix}
 \end{equation}
 
