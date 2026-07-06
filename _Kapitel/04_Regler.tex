@@ -1,7 +1,7 @@
 \chapter{Regler}
 Das Kapitel arbeitet sich von der untersten Reglerebene am Rad bis zum übergeordneten Lageregler vor und folgt damit der Signalkette aus Abbildung Konzept in umgekehrter Richtung. Den Anfang macht der Drehzahlregler, der an jedem der drei Räder dafür sorgt, dass die vorgegebene Solldrehzahl anliegt. Da Gewerk 2 jedoch keine Raddrehzahlen, sondern eine Sollgeschwindigkeit des Roboters liefert, ist eine Transformation von Roboter in Motorkoordinaten nötig. Damit sind alle Bausteine für die Vektorfahrweise beisammen. Für die Positionsfahrweise kommt eine weitere Ebene hinzu: Die gemessene Position liegt in Weltkoordinaten vor und muss in das Roboterkoordinatensystem überführt werden. Darauf setzt schließlich der Lageregler auf, dessen Parameter über ein Gain-Scheduling an die jeweilige Situation angepasst werden, um eine zuverlässige Fahrt sicherzustellen.
 \section{Drehzahlregler}
-Der Drehzahlregler sorgt dafür, dass eine vorgegebene Sollgeschwindigkeit des Roboters auf die Motorbewegung der einzelnen Motoren übersetzt wird und korrekt umgesetzt wird. Der Drehzahlreger wird in TwinCAT als Funktionsbaustein umgesetzt. Als Eingangsgrößen werden Sollgeschwindigkeiten in X,Y, und $\theta$ im Roboterkoordinatensystembenötigt. Außerdem werden die Istgeschwindigkeiten der einzelnen Motoren an den Eingang zurückgeführt. Der Ausgang ist das Geschwindigkeitessignal für die einzelnen drei Motoren. Abbildung \ref{fig:Drehzahlregler_BB} zeigt den Drehzahlregler als Blackbox mit Eingangs- und Ausgangssignalen.
+Der Drehzahlregler sorgt dafür, dass eine vorgegebene Sollgeschwindigkeit des Roboters auf die Motorbewegung der einzelnen Motoren übersetzt wird und korrekt umgesetzt wird. Der Drehzahlreger wird in TwinCAT als Funktionsbaustein umgesetzt. Als Eingangsgrößen werden Sollgeschwindigkeiten in X,Y, und $\varphi$ im Roboterkoordinatensystembenötigt. Außerdem werden die Istgeschwindigkeiten der einzelnen Motoren an den Eingang zurückgeführt. Der Ausgang ist das Geschwindigkeitessignal für die einzelnen drei Motoren. Abbildung \ref{fig:Drehzahlregler_BB} zeigt den Drehzahlregler als Blackbox mit Eingangs- und Ausgangssignalen.
 
 \begin{figure}[H]
     \centering
@@ -10,90 +10,88 @@ Der Drehzahlregler sorgt dafür, dass eine vorgegebene Sollgeschwindigkeit des R
     \label{fig:Drehzahlregler_BB}
 \end{figure}
 \subsection{Ein- und Ausgangssignale}
-\textbf{TargetVelocity}\\
-Die Target Velocity ist die Sollgeschwidigkeit des Roboters im Koordinatensystem des Roboters. Sie wird in $\frac{m}{s}$ angegeben und besteht aus drei voneinander unabhängigen Komponenten: X, Y und $\theta$. Die X-Komponente beschreibt die Geschwindigkeit in Vorwärtsrichtung, die Y-Komponente die Geschwindigkeit in Querrichtung und die $\theta$-Komponente die Winkelgeschwindigkeit um die Z-Achse. Durch Überlagerung der Bewegungen ist der Roboter in der Lage sich in alle Richtungen im Raum zu bewegen.\\
-\textbf{VelWheel}\\
-VelWheel1, -2 und -3 ist die Istgeschwindigkeit der einzelnen Motoren. Sie wird auch in m/s angegeben. Die Berechnung erfolgt über den Encoder des Motors und den Radumfang mit folgender Formel:
+\textbf{targetVel}\\
+Die Target Velocity ist die Sollgeschwidigkeit des Roboters im Koordinatensystem des Roboters. Sie wird in m/s angegeben und besteht aus drei voneinander unabhängigen Komponenten: x, y und $\varphi$. Durch Überlagerung der Bewegungen dieser Komponenten ist der Roboter in der Lage sich in alle Richtungen im Raum zu bewegen.\\
+\\
+\textbf{actualVelMotor}\\
+actualVelMotor1, -2 und -3 ist die Istgeschwindigkeit der einzelnen Motoren. Sie wird auch in m/s angegeben. Die Berechnung erfolgt über den Encoder des Motors und den Radumfang mit folgender Formel:
 \begin{equation}
-    \text{VelWheel1} = -\frac{n_{1,\text{fromMotor}}}{n_{\text{max,KlemmeDrehzahlMessung}}} \cdot \frac{n_{\text{max,MotorRPM}}}{60} \cdot \ddot{u} \cdot 2\pi \cdot r_{\text{Wheel}}
+    \text{VelWheel1} = -\frac{n_{\text{fromMotor}}}{n_{\text{max}}} \cdot \frac{n_{\text{max,MotorRPM}}}{60} \cdot \ddot{u} \cdot 2\pi \cdot r_{\text{Wheel}}
 \end{equation}
 
 \noindent Dabei bezeichnen:
-\begin{itemize}
-    \item $n_{1,\text{fromMotor}}$ -- Rohwert der Drehzahlmessung an der Motorklemme (vorzeichenbehaftet).
-    \item $n_{\text{max,KlemmeDrehzahlMessung}} = 10\,000$ -- Wert, den die Klemme bei maximaler Motordrehzahl zurückliefert (Skalierungsreferenz der Messung).
-    \item $n_{\text{max,MotorRPM}} = 3600\ \text{rpm}$ -- maximale Motordrehzahl. Zusammen mit dem vorherigen Term wird der Rohwert auf eine tatsächliche Drehzahl in Umdrehungen pro Minute umgerechnet; die Division durch $60$ wandelt diese in Umdrehungen pro Sekunde um.
-    \item $\ddot{u} = 0{,}0625$ -- Getriebeübersetzung zwischen Motor- und Raddrehzahl (Ausgangsdrehzahl = Motordrehzahl $\cdot\ \ddot{u}$).
-    \item $r_{\text{Wheel}} = 0,040\ \text{m}$ -- Radradius. Über $2\pi \cdot r_{\text{Wheel}}$ wird die Raddrehzahl (in Umdrehungen/s) in eine Umfangsgeschwindigkeit umgerechnet.
-\end{itemize}
+\begin{table}[H]
+    \centering    
+    \label{tab:VelWheel_Formelzeichen}
+    \begin{tabularx}{\textwidth}{|l|X|l|}
+        \hline
+        \textbf{Zeichen} & \textbf{Erklärung} & \textbf{Wert} \\
+        \hline
+        $n_{\text{fromMotor}}$ & Rohwert der Drehzahlmessung an der Motorklemme & - \\
+        \hline
+        $n_{\text{max}}$ & Wert, den die Klemme bei maximaler Motordrehzahl zurückliefert & 10\,000 \\
+        \hline
+        $n_{\text{max,MotorRPM}}$ & maximale Motordrehzahl (in rpm) & 3600 \\
+        \hline
+        $\ddot{u}$ & Getriebeübersetzung zwischen Motor- und Raddrehzahl & 0{,}0625 \\
+        \hline
+        $r_{\text{Wheel}}$ & Radradius (in m) & 0,040 \\
+        \hline
+    \end{tabularx}
+\end{table}
 
 
-\textbf{VelocityToMotor}\\
-VelocityToMotor1, -2 und -3 ist das jeweilige Ausgangssignal des Drehzahlreglers an die drei Motoren. Da die Motoren als Sollwert keinen Geschwindigkeitswert in $\text{mm/s}$, sondern einen skalierten Integerwert erwarten, muss $\text{VelWheel}$ vor der Ausgabe mit einem Skalierungsfaktor multipliziert werden. Die Berechnung erfolgt mit folgender Formel:
+\textbf{velocityToMotor}\\
+VelocityToMotor1, -2 und -3 ist das jeweilige Ausgangssignal des Drehzahlreglers an die drei Motoren. Da die Motoren als Sollwert keinen Geschwindigkeitswert in $\text{mm/s}$, sondern einen skalierten Integerwert erwarten, muss das Signal $\text{VelWheel}$ vor der Ausgabe mit einem Skalierungsfaktor multipliziert werden. Die Berechnung erfolgt mit folgender Formel:
 
 \begin{equation}
     \text{VelocityToMotor1} = \text{VelWheel1} \cdot \text{skalPos}
 \end{equation}
 
 \noindent Dabei bezeichnen:
-\begin{itemize}
-    \item $\text{VelWheel1}$ -- Istgeschwindigkeit des Motors in $\text{mm/s}$ (siehe oben).
-    \item $\text{skalPos} = 34{,}7668668\ \left[\dfrac{1}{\text{mm/s}}\right]$ -- Skalierungsfaktor, der die Geschwindigkeit in $\text{mm/s}$ auf den vom Motor erwarteten Integer-Wertebereich abbildet. Er berechnet sich aus dem Verhältnis von maximalem Ausgabewert zu maximal erreichbarer Geschwindigkeit:
-    \begin{equation}
-        \text{skalPos} = \frac{\text{MaxValue}}{\text{MaxVelocity}}
-    \end{equation}
-    \item $\text{MaxValue} = 32767$ -- maximaler darstellbarer Ausgabewert (Wertebereich eines vorzeichenbehafteten 16-Bit-Integers).
-    \item $\text{MaxVelocity} = 942\ \text{mm/s}$ -- maximal erreichbare Geschwindigkeit des Rades, berechnet aus dem Raddurchmesser $D$, der maximalen Motordrehzahl $n$ und der Getriebeübersetzung:
-    \begin{equation}
-        \text{MaxVelocity} = \frac{D \cdot \pi \cdot n}{16 \cdot 60}
-    \end{equation}
-    \item $D$ -- Raddurchmesser in mm.
-    \item $n$ -- maximale Motordrehzahl in rpm.
-    \item $16$ -- Getriebeübersetzung (Motor- zu Raddrehzahl, entspricht $\ddot{u} = \tfrac{1}{16} = 0{,}0625$).
-    \item $60$ -- Umrechnungsfaktor von Minuten auf Sekunden.
-\end{itemize}
+\begin{table}[H]
+    \centering    
+    \label{tab:VelocityToMotor_Formelzeichen}
+    \begin{tabularx}{\textwidth}{|l|X|l|}
+        \hline
+        \textbf{Zeichen} & \textbf{Erklärung} & \textbf{Wert} \\
+        \hline
+        $\text{VelWheel1}$ & Sollgeschwindigkeit des Rades (in m/s) & - \\
+        \hline
+        $\text{skalPos}$ & Skalierungsfaktor, der die Geschwindigkeit in mm/s auf den vom Motor erwarteten Integer-Wertebereich abbildet & $34{,}7668668\ $ \\
+        \hline        
+    \end{tabularx}
+\end{table}
 
-\noindent Da $\text{VelWheel1}$ in $\text{mm/s}$ und $\text{skalPos}$ in $\tfrac{1}{\text{mm/s}}$ angegeben sind, ist $\text{VelocityToMotor1}$ dimensionslos und stellt den direkten Sollwert für den Motorregler dar.
 \subsection{Umrechnung von Roboter- in Motorkoordinaten}
-Die von Gewerk 2 gelieferte Sollgeschwindigkeit liegt als kartesischer Geschwindigkeitsvektor im Koordinatensystem des Roboters vor (TargetVelocity, siehe oben) und muss für die einzelnen Motoren in eine jeweilige Solldrehzahl umgerechnet werden. Da der Roboter über drei omnidirektionale Räder verfügt, die jeweils um $\frac{2\pi}{3}$ versetzt am Roboter angebracht sind, ergibt sich die Solldrehzahl jedes Motors aus einer Überlagerung der drei Bewegungskomponenten $\dot{x}$, $\dot{y}$ und $\dot{\theta}$.
+Die von Gewerk 2 oder vom Positionsregler gelieferte Sollgeschwindigkeit liegt als kartesischer Geschwindigkeitsvektor im Koordinatensystem des Roboters vor (TargetVelocity, siehe oben) und muss für die einzelnen Motoren intern in eine jeweilige Solldrehzahl umgerechnet werden. \\
 
-\noindent Bevor die Transformation durchgeführt wird, werden die Sollgeschwindigkeiten zunächst invertiert:
-\begin{equation}
-    \dot{x} = -\text{targetVelX}, \qquad \dot{y} = -\text{targetVelY}, \qquad \dot{\theta} = -\text{targetVelTheta}
-\end{equation}
-Diese Invertierung ist notwendig, da die Drehrichtung der Motoren im Projekt invers zur Definition der Sollgeschwindigkeit festgelegt ist. Ohne diese Anpassung würde der Roboter bei positiv vorgegebener Sollgeschwindigkeit in die jeweils entgegengesetzte Richtung fahren bzw. sich entgegengesetzt zur vorgegebenen Winkelgeschwindigkeit drehen.
 
-\noindent Die eigentliche Umrechnung von Roboter- in Motorkoordinaten erfolgt anschließend über eine kinematische Transformationsmatrix, die ausschließlich aus konstanten Koeffizienten besteht:
+\noindent Die Umrechnung von Roboter- in Motorbewegung erfolgt über die inverse kinematische Transformationsmatrix, die im Kapitel \textit{Beobachter} bereits für die umgekahrte Umrechnung von Raddrehzahlen in Roboterbewegung vorgestellt wurde (Gleichung 3.8). 
 \begin{equation}
-    \begin{pmatrix}
+    \begin{bmatrix}
         \text{targetVelocityMotor1} \\
         \text{targetVelocityMotor2} \\
         \text{targetVelocityMotor3}
-    \end{pmatrix}
+    \end{bmatrix}
     =
-    \begin{pmatrix}
-        -\sin\left(\dfrac{\pi}{3}\right) & \cos\left(\dfrac{\pi}{3}\right) & R_{\text{Robot}} \\[8pt]
-        -\sin\left(\pi\right) & \cos\left(\pi\right) & R_{\text{Robot}} \\[8pt]
-        -\sin\left(\dfrac{5\pi}{3}\right) & \cos\left(\dfrac{5\pi}{3}\right) & R_{\text{Robot}}
-    \end{pmatrix}
-    \begin{pmatrix}
-        \dot{x} \\
-        \dot{y} \\
-        \dot{\theta}
-    \end{pmatrix}
+    \begin{bmatrix}
+        -\sin\left(\dfrac{\pi}{3}\right) & \cos\left(\dfrac{\pi}{3}\right) & R \\[8pt]
+        -\sin\left(\pi\right) & \cos\left(\pi\right) & R \\[8pt]
+        -\sin\left(\dfrac{5\pi}{3}\right) & \cos\left(\dfrac{5\pi}{3}\right) & R
+    \end{bmatrix}
+    \begin{bmatrix}
+        targetVelX\\
+        targetVelY \\
+        targetVelTheta
+    \end{bmatrix}
 \end{equation}
 
-\noindent Dabei bezeichnen:
-\begin{itemize}
-    \item $\dfrac{\pi}{3}$, $\pi$, $\dfrac{5\pi}{3}$ -- Winkelposition der jeweiligen Räder am Roboter, bezogen auf die Vorwärtsrichtung des Roboters. Die Räder sind gleichmäßig um jeweils $\dfrac{2\pi}{3}$ versetzt angeordnet.
-    \item $R_{\text{Robot}}$ -- Radius des Roboters, also der Abstand vom Mittelpunkt des Roboters zu den Rädern. Da $\dot{x}$ und $\dot{y}$ in $\text{mm/s}$ vorliegen, wird $R_{\text{Robot}}$ (intern in Metern definiert, \texttt{GVL\_RobotConstant.ROBOT\_RADIUS}) mit dem Faktor $1000$ ebenfalls in Millimeter umgerechnet, um Einheitskonsistenz sicherzustellen. Da $R_{\text{Robot}}$ für alle drei Zeilen der Matrix denselben, konstanten Wert annimmt, bildet die dritte Spalte der Matrix ausschließlich diesen einen Koeffizienten ab.
-    \item $\dot{x}$, $\dot{y}$, $\dot{\theta}$ -- invertierte Sollgeschwindigkeiten des Roboters (siehe oben).
-\end{itemize}
 
-\noindent Das Ergebnis dieser Transformation, \text{targetVelocityMotor1}, -2 und -3, entspricht der jeweiligen Solldrehzahl der drei Motoren und dient als Eingangsgröße für den in Abschnitt \ref{InterneReglerstruktur} beschriebenen PI-Drehzahlregler. Die exemplarische Umsetzung dieser Umrechnung in TwinCAT wird im folgenden Abschnitt anhand einer Tabelle dargestellt.
+\noindent Das Ergebnis dieser Transformation, \text{targetVelocityMotor1}, -2 und -3, entspricht der jeweiligen Solldrehzahl der drei Motoren und dient als Eingangsgröße für den im nächsten Abschnitt Geschwindigkeitsregler.
 \subsection{Interne Reglerstruktur}
 \label{InterneReglerstruktur}
-Der Drehzahlregler ist als herkömmlicher PI-Regler ausgelegt. Er bildet aus den beiden Eingangssignalen Sollwert und Istwert einen Regelfehler, welcher über die beiden Reglerpfade proportional und integral verarbeitet wird. Der Regler bedient die 3 Motoren unabhängig voneinander, sodass die Reglerstruktur aus 3 parallelen aber identischen SISO Reglern besteht. Abbildung \ref{fig:Drehzahlregler_Intern} zeigt die interne Struktur des Drehzahlreglers für einen Motor.
+Der Geschwindigkeitsregler für die Radmotoren ist als PI-Regler ausgelegt. Er bildet aus den beiden Eingangssignalen Sollwert und Istwert einen Regelfehler, welcher über die beiden Reglerpfade proportional und integral verarbeitet wird. Der Regler bedient die 3 Motoren unabhängig voneinander, sodass die Reglerstruktur aus 3 parallelen aber identischen SISO Reglern besteht. Abbildung \ref{fig:Drehzahlregler_Intern} zeigt die interne Struktur des Drehzahlreglers für einen Motor.
 
 \begin{figure}[H]
     \centering
@@ -102,7 +100,7 @@ Der Drehzahlregler ist als herkömmlicher PI-Regler ausgelegt. Er bildet aus den
     \label{fig:Drehzahlregler_Intern}
 \end{figure}
 
-Der Regler ist als PI-Regler ausgelegt, um eine bleibende Regelabweichung zu eleminieren. Die Regelparameter sind experimentell ermittelt worden. Da die Regelerperformance mit diesem Parametern für alle drei Motoren zufriedenstellend ist, wurde auf eine quantitative Optimierung verzichtet. Die Parameter sind in Tabelle \ref{tab:Drehzahlregler_Parameter} zusammengefasst. Die exemplarische Umsetzung des Reglers in TwinCAT ist in Abbildung \ref{tab:Drehzahlregler_TwinCAT} dargestellt.
+\noindent Der Regler ist als PI-Regler ausgelegt, um eine bleibende Regelabweichung zu eliminieren. Die Regelparameter sind experimentell ermittelt worden. Da die Regelerperformance mit diesem Parametern für alle drei Motoren zufriedenstellend ist (siehe Auswertung Vektorfahrweise), wurde auf eine quantitative Optimierung verzichtet. Die Parameter sind in Tabelle \ref{tab:Drehzahlregler_Parameter} zusammengefasst. Die exemplarische Umsetzung des Reglers in TwinCAT ist in Tabelle \ref{tab:Drehzahlregler_TwinCAT} dargestellt.
 
 \begin{table}[H]
     \centering
@@ -151,76 +149,75 @@ Der Positionsregler sorgt dafür, dass eine vorgegebene Sollposition des Roboter
 
 \subsection{Ein- und Ausgangssignale}
 \textbf{TargetPosition}\\
-Die Target Position ist die Sollposition des Roboters im Weltkoordinatensystem. Sie besteht aus drei Komponenten; der X- und Y- Position und $\theta$-Ausrichtung. Der Positionsregler ist laut Konzept speziell für das Anfahren der Taschen im Nahbereich konzipiert. Somit ist er auf Target Positionen optimiert, welcher sich in der Nähe der aktuellen Position befinden. \\
+Die Target Position ist die Sollposition des Roboters im Weltkoordinatensystem. Sie besteht aus drei Komponenten; der x- und y-Position und $\varphi$-Ausrichtung. Der Positionsregler ist laut Konzept speziell für das Anfahren der Taschen im Nahbereich konzipiert. Somit ist er auf Target Positionen optimiert, welcher sich in der Nähe der aktuellen Position befinden. \\
+\\
 \textbf{ActualPosition}\\
-Die Actual Position ist die Istposition des Roboters im Weltkoordinatensystem. Sie besteht ebenfalls aus drei Komponenten; der X- und Y- Position und $\theta$-Ausrichtung. Die Istposition wird von einem Beobachter geschätzt, welcher die aktuelle Position aus den Sensordaten des Roboters berechnet.\\
+Die Actual Position ist die Istposition des Roboters im Weltkoordinatensystem. Sie besteht ebenfalls aus drei Komponenten; der x- und y-Position und $\varphi$-Ausrichtung. Die Istposition wird von einem Beobachter (Kapitel 3) geschätzt, welcher die aktuelle Position aus den Sensordaten des Roboters berechnet.\\
+\\
 \textbf{KP, KI}\\  
 Um die Reglerparameter für verschiedene Fahrsituationen anpassen zu können, sind die beiden Parameter KP und KI als Eingangsgrößen veränderbar. Die Parameter werden in einem Gain Scheduling Algorithmus berechnet.\\
+\\
 \textbf{TargetVelocity}
 \\
 Die Target Velocity ist die Sollgeschwindigkeit des Roboters im Koordinatensystem des Roboters. Da der Fehler aus Soll- und Istposition in Weltkoordinaten berechnet wird, muss die Sollgeschwindigkeit in Roboterkoordinaten umgerechnet werden. 
 
 \subsection{Interne Reglerstruktur}
-Der Positionsregler ist als herkömmlicher P- bzw. PI-Regler ausgelegt. Er bildet aus den beiden Eingangssignalen Sollwert und Istwert einen Regelfehler, welcher über die beiden Reglerpfade proportional und integral verarbeitet wird. Der Regler bedient die drei Freiheitsgrade des Roboters unabhängig voneinander, sodass die Reglerstruktur aus 3 parallelen aber SISO Reglern besteht. Für den Winkel und die Lateralposition - im normalen Betrieb die Y-Position - wird ein P-Regler verwendet. Für die Einfahrtsrichtung - im normalen Betrieb die X-Position - wird ein PI-Regler verwendet. Abbildung \ref{fig:Positionsregler_Intern} zeigt die interne Struktur des Positionsreglers für die X-Achse.
+Der Positionsregler ist als P- bzw. PI-Regler ausgelegt. Er bildet aus den beiden Eingangssignalen Sollwert und Istwert einen Regelfehler, welcher über die beiden Reglerpfade proportional und integral verarbeitet wird. Der Regler bedient die drei Freiheitsgrade des Roboters unabhängig voneinander, sodass die Reglerstruktur aus 3 parallelen SISO Reglern besteht. Für den Winkel und die Lateralposition - im normalen Betrieb die x-Position - wird ein P-Regler verwendet. Für die Einfahrtsrichtung - im normalen Betrieb die x-Position - wird ein PI-Regler verwendet. Abbildung \ref{fig:Positionsregler_Intern} zeigt die interne Struktur des Positionsreglers für die x-Position.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{_Bilder/Positionsregler_Intern.png}
-    \caption{Interne Struktur des Positionsreglers für die X-Achse}
+    \caption{Interne Struktur des Positionsreglers für die x-Position}
     \label{fig:Positionsregler_Intern}
 \end{figure}
 
-Für die X- und Y-Achse sind die Reglerparameter KP und KI von außen verstellbar. Die Reglerung der $\theta$-Achse ist als konstanter P-Regler ohne Integralanteil ausgelegt. Mehr dazu im Abschnitt \textit{Fahralgorithmus mit Gain-Scheduling}. Ein exemplarischer Ablauf des Positionsreglers in TwinCAT ist in Tabelle \ref{tab:Positionsregler_TwinCAT} dargestellt.
+Für die x- und y-Position sind die Reglerparameter KP und KI von außen verstellbar. Die Reglerung der $\varphi$-Achse ist als konstanter P-Regler ohne Integralanteil ausgelegt. Mehr dazu im Abschnitt \textit{Fahralgorithmus mit Gain-Scheduling}. Ein exemplarischer Ablauf des Positionsreglers in TwinCAT ist in Tabelle \ref{tab:Positionsregler_TwinCAT} dargestellt.
 
 \begin{table}[H]
     \centering
     \label{tab:Positionsregler_TwinCAT}
+    \caption{Exemplarischer Ablauf des Positionsreglers in TwinCAT}
     \begin{tabular}{|c|p{6cm}|p{8cm}|}
         \hline
         \textbf{Schritt} & \textbf{Kurze Erläuterung} & \textbf{TwinCAT Code} \\
         \hline
-        1 & Bildung des Positionsregelfehlers in X-Richtung & \texttt{error.reX := targetPos.reX - actualPos.reX;} \\
+        1 & Bildung des Positionsregelfehlers in x-Richtung & \texttt{error.reX := targetPos.reX - actualPos.reX;} \\
         \hline
         2 & Aufsummierung des \newline Integralanteils & \texttt{integralError.reX := integralError.reX + (error.reX * diffConst);} \\
         \hline
-        3 & Berechnung der geregelten Sollgeschwindigkeit in X-Richtung (P- und I-Anteil) & \texttt{W\_X\_targetSpeed := (error.reX * KPX) + (KIX * integralError.reX);} \\
+        3 & Berechnung der geregelten Sollgeschwindigkeit in x-Richtung & \texttt{W\_X\_targetSpeed := (error.reX * KPX) + (KIX * integralError.reX);} \\
         \hline
     \end{tabular}
-    \caption{Exemplarischer Ablauf des Positionsreglers in TwinCAT}
+    
 \end{table}
 \subsection{Umrechnung von Welt- und Roboterkoordinaten}
 Die vom Positionsregler berechnete Sollgeschwindigkeit liegt zunächst im Weltkoordinatensystem vor (W\_X\_targetSpeed, W\_Y\_targetSpeed, W\_Theta\_targetSpeed), da auch die zugrunde liegende Positionsmessung (actualPos) im Weltkoordinatensystem erfolgt. Da der nachgelagerte Drehzahlregler jedoch eine Sollgeschwindigkeit im Koordinatensystem des Roboters (TargetVelocity) erwartet, muss die Sollgeschwindigkeit vor der Weitergabe entsprechend der aktuellen Orientierung des Roboters transformiert werden.
 
-\noindent Die Transformation erfolgt über eine Rotation um den aktuellen Orientierungswinkel des Roboters $\theta_{\text{ist}}$ (\texttt{actualPos.reWinkel}), welcher die Differenz zwischen der Ausrichtung des Roboters und der des Weltkoordinatensystems angibt. Für die translatorischen Geschwindigkeitskomponenten $\dot{x}$ und $\dot{y}$ ergibt sich damit folgende Drehmatrix:
+\noindent Die Transformation erfolgt über eine Rotation um den aktuellen Orientierungswinkel des Roboters $\varphi_{\text{ist}}$ (\texttt{actualPos.reWinkel}). Für die translatorischen Geschwindigkeitskomponenten $\dot{x}$ und $\dot{y}$ ergibt sich damit folgende Drehmatrix:
 \begin{equation}
-    \begin{pmatrix}
-        \dot{x}_{\text{Robot}} \\
-        \dot{y}_{\text{Robot}}
-    \end{pmatrix}
+    \begin{bmatrix}
+        \dot{x}_{\text{r}} \\
+        \dot{y}_{\text{r}}
+    \end{bmatrix}
     =
-    \begin{pmatrix}
-        \cos(\theta_{\text{ist}}) & -\sin(\theta_{\text{ist}}) \\
-        \sin(\theta_{\text{ist}}) & \cos(\theta_{\text{ist}})
-    \end{pmatrix}
-    \begin{pmatrix}
-        \dot{x}_{\text{Welt}} \\
-        \dot{y}_{\text{Welt}}
-    \end{pmatrix}
+    \begin{bmatrix}
+        \cos(\varphi) & -\sin(\varphi) \\
+        \sin(\varphi) & \cos(\varphi)
+    \end{bmatrix}
+    \begin{bmatrix}
+        \dot{x}_{\text{w}} \\
+        \dot{y}_{\text{w}}
+    \end{bmatrix}
 \end{equation}
 
-\noindent Dabei bezeichnen:
-\begin{itemize}
-    \item $\dot{x}_{\text{Welt}}$, $\dot{y}_{\text{Welt}}$ -- vom Positionsregler berechnete Sollgeschwindigkeiten im Weltkoordinatensystem (W\_X\_targetSpeed, W\_Y\_targetSpeed).
-    \item $\theta_{\text{ist}}$ -- aktueller, gemessener Orientierungswinkel des Roboters im Weltkoordinatensystem (\texttt{actualPos.reWinkel}).
-    \item $\dot{x}_{\text{Robot}}$, $\dot{y}_{\text{Robot}}$ -- Sollgeschwindigkeiten im Koordinatensystem des Roboters (R\_X\_targetSpeed, R\_Y\_targetSpeed), welche als TargetVelocity an den Drehzahlregler weitergegeben werden.
-\end{itemize}
 
-\noindent Die Winkelgeschwindigkeit $\dot{\theta}$ (W\_Theta\_targetSpeed) bleibt von dieser Transformation unberührt und wird unverändert als R\_Theta\_targetSpeed übernommen. Dies liegt daran, dass eine Rotation um die Z-Achse unabhängig von der Orientierung des Roboters ist: Die Drehgeschwindigkeit des Roboters um seinen eigenen Mittelpunkt ist in beiden Koordinatensystemen identisch, da sich lediglich die translatorischen Komponenten $\dot{x}$ und $\dot{y}$ durch die unterschiedliche Ausrichtung der Koordinatensysteme unterscheiden-\\
+\noindent Die Winkelgeschwindigkeit $\dot{\varphi}$ (W\_Theta\_targetSpeed) bleibt von dieser Transformation unberührt, die Drehgeschwindigkeit des Roboters um seinen eigenen Mittelpunkt ist in beiden Koordinatensystemen identisch.\\
 Somit schließt sich für den Regler ein vierter Schritt an:
 
 \begin{table}[H]
     \centering
     \label{tab:Positionsregler_Transformation}
+    \caption{Fortsetzung eines exemplarischen Ablaufs des Positionsreglers in TwinCAT}
     \begin{tabular}{|c|p{6cm}|p{8cm}|}
         \hline
         \textbf{Schritt} & \textbf{Kurze Erläuterung} & \textbf{TwinCAT Code} \\
@@ -229,18 +226,24 @@ Somit schließt sich für den Regler ein vierter Schritt an:
         \texttt{R\_X\_targetSpeed := cos(actualPos.reWinkel) * W\_X\_targetSpeed - sin(actualPos.reWinkel) * W\_Y\_targetSpeed;}\\      
         \hline
     \end{tabular}
-    \caption{Fortsetzung eines exemplarischen Ablaufs des Positionsreglers in TwinCAT}
+    
 \end{table}
-\textbf{Anti-Windup Methode}\\
+\noindent \textbf{Anti-Windup Methode}\\
 Um zu verhindern, dass sich der Intergralanteil der Einfahrtsrichtung unkontrolliert aufsummiert, wird der Integralanteil auf 0 gesetzt, solange KIX = 0.
 
 \subsection{Fahralgorithmus mit Gain-Scheduling}
-Laut Konzept bringt Gewerk 2 den Roboter in der Vektorfahrweise in die Nähe des Taschenbereichs. Ab dort übernimmt der Positionsregler die Bewegung des Roboters. Bei der Positionsfahrt sollen wesentliche Punkte erfüllt werden: 1. Der Roboter soll die Tasche möglichst schnell und flüssig anfahren. Gleichzeitig darf die Geschwindigkeit beim Andock an die Station nicht zu hoch sein, um das Material nicht unötig zu belasten 2. Der Roboter muss die Tasche von vorne anfahren, Da der Greifer für das Werkstück nur von vorne be- und entladen werden kann. 3. Der Roboter muss mit genügend Momentum an die Station fahren, um in der Tasche zu landen und den Slider auszulösen. Dieser Punkt betrifft vorallem einzelne Stationen an denen das Blech der Station etwas nach oben gebogen ist. Hier braucht der Roboter genügend Schwung, um die Station zu überwinden. \\
+Laut Konzept bringt Gewerk 2 den Roboter in der Vektorfahrweise in die Nähe des Taschenbereichs. Ab dort übernimmt der Positionsregler die Bewegung des Roboters. Bei der Positionsfahrt sollen folgende wesentliche Punkte erfüllt werden:
 
-\textbf{Gain Scheduling Algorithmus}\\
-Um Punkt 3 zu erfüllen, wurde ein PI-Regler mit Gain-Scheduling in Einfahrtsrichtung gewählt. Prinzipiell würde für einen Positionsregler ein P-Regler ausreichen, da sich ein Integrator in der Strecke befindet und der unterlagerte Geschwindigkeitsregler ebenfalls als PI-Regler ausgelegt ist. Für den Fall, dass die Stellgröße nicht ausreicht, um die verbogene Station zu überwinden, wurde der I-Anteil im Regler hinzugefügt. Um über den gesamten Anfahrweg eine gute Geschwindigkeit zu fahren – also nicht zu langsam, aus Zeitgründen und um die Tasche zuverlässig zu überwinden, und gleichzeitig nicht zu schnell im Stationsbereich, um das Material zu schonen – wird ein Mix aus P- und I-Anteil nach folgendem Gain-Scheduling-Algorithmus berechnet:
+\begin{enumerate}
+    \item Der Roboter soll die Tasche möglichst schnell und flüssig anfahren. Gleichzeitig darf die Geschwindigkeit beim Andocken an die Station nicht zu hoch sein, um das Material nicht unnötig zu belasten.
+    \item Der Roboter muss die Tasche von vorne anfahren, da der Greifer für das Werkstück nur von vorne be- und entladen werden kann.
+    \item Der Roboter muss mit genügend Momentum an die Station fahren, um in der Tasche zu landen und den Slider auszulösen. Dieser Punkt betrifft vor allem einzelne Stationen, an denen das Blech der Station etwas nach oben gebogen ist. Hier braucht der Roboter genügend Schwung, um die Station zu überwinden.
+\end{enumerate}
 
-Zunächst wird aus der Distanz zur Zielposition $\Delta_\mathrm{In}$ ein normierter Faktor
+\noindent \textbf{Gain Scheduling Algorithmus}\\
+Um Punkt 3 zu erfüllen, wurde ein PI-Regler mit Gain-Scheduling in Einfahrtsrichtung gewählt. Prinzipiell würde für einen Positionsregler ein P-Regler ausreichen, da sich ein Integrator in der Strecke befindet und der unterlagerte Geschwindigkeitsregler ebenfalls als PI-Regler ausgelegt ist. Der I-Anteil im Regler wurde für den Fall hinzugefügt, dass die Stellgröße nicht ausreicht, um die verbogene Station zu überwinden. Um über den gesamten Anfahrweg eine gute Geschwindigkeit zu fahren – also nicht zu langsam, aus Zeitgründen und um die Tasche zuverlässig zu überwinden, und gleichzeitig nicht zu schnell beim Andocken, um das Material zu schonen – wird ein Mix aus P- und I-Anteil nach folgendem Gain-Scheduling-Algorithmus berechnet:\\
+
+\noindent Zunächst wird aus der Distanz zur Zielposition $\Delta_\mathrm{In}$ ein normierter Faktor
 
 \[
 f = \frac{\Delta_\mathrm{In}}{100}
@@ -248,7 +251,7 @@ f = \frac{\Delta_\mathrm{In}}{100}
 
 gebildet und auf den Bereich $0 \leq f \leq 1$ begrenzt. Dieser Faktor dient als Interpolationsgröße zwischen den minimalen und maximalen Reglerparametern.
 
-Für den Proportionalanteil gilt
+\noindent Für den Proportionalanteil gilt dann:
 
 \[
 K_P =
@@ -265,9 +268,9 @@ K_{P,\mathrm{min}} = 0{,}1,\qquad
 K_{P,\mathrm{max}} = 3{,}0.
 \]
 
-Dadurch ist der P-Anteil in unmittelbarer Stationsnähe vollständig deaktiviert. Dies verhindert ein unnötig aggressives Regelverhalten und ermöglicht ein besonders weiches Einfahren in die Zielposition. Mit zunehmender Entfernung steigt der P-Anteil linear an, wodurch eine hohe Dynamik beim Anfahren erreicht wird.
+\noindent Dadurch ist der P-Anteil in unmittelbarer Stationsnähe vollständig deaktiviert. 
 
-Der Integralanteil wird entgegengesetzt zum P-Anteil angepasst:
+ \noindentDer Integralanteil wird entgegengesetzt zum P-Anteil angepasst:
 
 \[
 K_I =
@@ -284,7 +287,7 @@ K_{I,\mathrm{min}} = 0,\qquad
 K_{I,\mathrm{max}} = 0{,}25.
 \]
 
-Der I-Anteil besitzt somit in größerer Entfernung von der Station keinen Einfluss auf das Regelverhalten. Erst beim Annähern an die Zielposition nimmt sein Einfluss kontinuierlich zu. Dadurch kann die Regelung stationäre Fehler ausgleichen und eine eventuell erhöhte Reibung oder mechanische Verformungen der Station überwinden. Gleichzeitig bleibt der Regler während des Anfahrens überwiegend proportional ausgelegt, wodurch ein schnelles und stabiles Regelverhalten erreicht wird. Abbildung \ref{fig:GSA} zeigt den Verlauf der Regelparameter beim Gain-Scheduling in Abhängigkeit von der Distanz zur Zielposition.
+Der I-Anteil besitzt somit in größerer Entfernung von der Station keinen Einfluss auf das Regelverhalten. Erst beim Annähern an die Zielposition nimmt sein Einfluss kontinuierlich zu. Der Regler ist in größerem Abstand von der Station ein P-dominierter Regler und im Nahbereich der Station ein reine I-Regler. Abbildung \ref{fig:GSA} zeigt den Verlauf der Regelparameter beim Gain-Scheduling in Abhängigkeit von der Distanz zur Zielposition.
 
 \begin{figure}[H]
     \centering
@@ -293,18 +296,22 @@ Der I-Anteil besitzt somit in größerer Entfernung von der Station keinen Einfl
     \label{fig:GSA}
 \end{figure}
 
-Die gegenläufige Anpassung von P- und I-Anteil vereint somit zwei Anforderungen: Einerseits wird auf langen Fahrstrecken eine hohe Dynamik erzielt, andererseits erfolgt das Einfahren in die Station materialschonend mit hoher Positioniergenauigkeit.
+Die gegenläufige Anpassung von P- und I-Anteil vereint somit zwei Anforderungen: Einerseits wird auf langen Fahrstrecken eine hohe Dynamik erzielt, andererseits erfolgt das Einfahren in die Station materialschonend mit hoher Positioniergenauigkeit.\\
 \textbf{Schrittkette des Anfahrens}
 Um Punkt 2 zu erfüllen, könnte man die Bewegungskoponenten in X- und Y-Richtung trennen und nacheinander abarbeiten. Dies würde jedoch gegen Punkt 1 verstoßen, da die Bewegung in X- und Y-Richtung nicht mehr schnell und flüssig wäre. Um sicherzustellen, dass die Tasche immer von vorne getroffen wird und trotzdem flüssig angefahren wird, wurde eine Schrittkette für das Anfahren mit unterschiedlichen Reglerparametern realisiert:\\
-
+\\
 \textbf{1. Ausrichtung des Winkels}
-Da die $\theta$-Ausrichtung des Roboter mit in der Drehmatrix steckt, beeinflusst eine Änderung der Drehung auch die Bewegung in X- und Y-Richtung in Weltkoordinaten stark. Das gleichzeitige Fahren und Drehen ist daher schwer umzusetzten, vorallem in Bereichen wo hohe Präzision verlangt wird. Letzlich haben wir uns dazu entscheiden die Drehung im Stillstand auszuführen, sobald von Vektor- auf Positionsfahrweise gewechselt wird. Der Winkel wird über einen P-Regler mit konstantem KP geregelt. Das KP beträgt 1,5 und ist bewusst aggressiv gewählt, um möglichst wenig Zeit im Stillstand zu verbringen. Sobald der Winkel in einem bestimmten Bereich liegt, wird die Bewegung in X- und Y-Richtung im nächsten Schritt freigeschaltet\\
+Da die $\varphi$-Ausrichtung des Roboter mit in der Drehmatrix steckt, beeinflusst eine Änderung der Drehung auch die Bewegung in X- und Y-Richtung in Weltkoordinaten stark. Das gleichzeitige Fahren und Drehen ist daher schwer umzusetzten, vorallem in Bereichen wo hohe Präzision verlangt wird. Letzlich haben wir uns dazu entscheiden die Drehung im Stillstand auszuführen, sobald von Vektor- auf Positionsfahrweise gewechselt wird. Der Winkel wird über einen P-Regler mit konstantem KP geregelt. Das KP beträgt 1,5 und ist bewusst aggressiv gewählt, um möglichst wenig Zeit im Stillstand zu verbringen. Sobald der Winkel in einem bestimmten Bereich liegt, wird die Bewegung in X- und Y-Richtung im nächsten Schritt freigeschaltet\\
+\\
 \textbf{2b. Ausrichtung der Lateralbewegung}
-Die Ausrichtung der Lateralbewegung hat eine höhere Priorität als die Ausrichtung der Vorwärtsbewegung, da die Tasche von vorne angefahren werden muss. Solange sich die Lateralposition noch nicht in einem Toleranzbereich befindet, wird die Vorwärtsbewegung gedrosselt. 
+Die Ausrichtung der Lateralbewegung hat eine höhere Priorität als die Ausrichtung der Vorwärtsbewegung, da die Tasche von vorne angefahren werden muss. Solange sich die Lateralposition noch nicht in einem Toleranzbereich befindet, wird die Vorwärtsbewegung gedrosselt. \\
+\\
 \textbf{2a. Nur Lateralbewegung}
 Der Fall 2a tritt ein, wenn der Roboter sehr nach an der Station ist, aber die Lateralposition noch nicht in einem Toleranzbereich liegt. In diesem Fall wird die Vorwärtsbewegung komplett gesperrt und nur die Lateralbewegung ausgeführt. Dieser Fall sollte im Normalbetrieb selten auftreten, da die Ausrichtung der Lateralbewegung immer priorisiert wird. Der Fall wird, obwohl er selten auftritt, mit 2a bezeichnet, da er eine höhere Priorität als 2b haben muss.\\
+\\
 \textbf{3. Normale Fahrt nach Gain-Scheduling Algorithmus}
 Sind sowohl Winkel als auch Lateralposition in einem Toleranzbereich, wird die Einfahrt mit dem PI-Regler nach dem Gain-Scheduling Algorithmus ausgeführt. Die Reglerparameter werden über eine Funktion berechnet, welche die Distanz zur Sollposition als Eingangsgröße verwendet. \\
+\\
 Abbildung \ref{fig:flowchart} zeigt ein Flowchart über die verschiedenen Schritte der Anfahrkette. \\
 
 \begin{figure}[H]
@@ -313,42 +320,51 @@ Abbildung \ref{fig:flowchart} zeigt ein Flowchart über die verschiedenen Schrit
     \caption{Flowchart über die Anfahrkette des Positionsreglers mit Gain-Scheduling}
     \label{fig:flowchart}
 \end{figure}
-
-Der Gain-Scheduling Algorithmus berechnet und verändert die Reglerparameter nur für die Einfahrtsrichtung, da diese den größten Einfluss auf das Erfüllen der Anforderungen 1, 2 und 3 hat. Dennoch kann auch KPY und KIY angepasst werden. Der Grund liegt darin, dass die "Tasche" der Ladestation genau andersherum, also aus Y-Richtung angefahren werden muss. Der Roboter weiß durch die Zielposition und -ausrichtung ob es sich um eine Tasche oder eine Ladestation handelt. Für das Anfahren der Ladestation werden alle Regelparameter einfach umgedreht. Somit wird die Bewegung in X-Richtung dann mit einem konstanten P-Regler mit $K_p = 2$ ausgeführt und das Gain Scheduling findet in Y-Richtung statt.\\
+\newpage
+\noindent Der Gain-Scheduling Algorithmus berechnet und verändert die Reglerparameter nur für die Einfahrtsrichtung, da diese den größten Einfluss auf das Erfüllen der Anforderungen 1, 2 und 3 hat. Dennoch kann auch KPY und KIY angepasst werden. Der Grund liegt darin, dass die "Tasche" der Ladestation genau andersherum, also aus y-Richtung angefahren werden muss. Der Roboter weiß durch die Zielposition und -ausrichtung ob es sich um eine Tasche oder eine Ladestation handelt. Für das Anfahren der Ladestation werden alle Regelparameter einfach umgedreht. Somit wird die Bewegung in x-Richtung dann mit einem konstanten P-Regler mit $K_p = 2$ ausgeführt und das Gain Scheduling findet in y-Richtung statt.\\
 
 \section{Auswertung}
 \subsection{Vektorfahrweise}
-Bei der Vektorfahrweise wird nur der Geschwindigkeitsregler benötigt. Er soll die Sollgeschwindigkeit von Gewerk 2 möglichst gut an den Roboter weitergeben. Die Berechnung der Sollgeschwindigkeit erfolgt in Gewerk 2. In der Auswertung zeigt sich, dass der vorgegebene Wert von Gewerk 2 stark schwankt. Abbildung \ref{fig:sollwert} zeigt den Sollwert der Geschwindigkeit in der Vektorfahrweise über \SI{200}{\second}. Abbildung \ref{fig:istwert} zeigt den entsprechenden Istwert der Geschwindigkeit über dem Sollwertin der Vektorfahrweise über \SI{200}{\second}. Da die Sollgeschwindigkeit stark schwankt, ist eine quantitative Auswertung der Reglerperformance schwer möglich. Dennoch ist sowohl in Abbildung \ref{fig:istwert}, als auch bei der Vorführung zu sehen, dass die Performance für diese Anwendung gut genug ist. 
+Bei der Vektorfahrweise wird nur der Geschwindigkeitsregler benötigt. Er soll die Sollgeschwindigkeit von Gewerk 2 möglichst gut an den Roboter weitergeben. Die Berechnung der Sollgeschwindigkeit erfolgt in Gewerk 2. In der Auswertung zeigt sich, dass der vorgegebene Wert von Gewerk 2 stark schwankt. Abbildung \ref{fig:sollwert} zeigt den Sollwert der Geschwindigkeit in der Vektorfahrweise über \SI{200}{\second}. Abbildung \ref{fig:istwert} zeigt den entsprechenden Istwert der Geschwindigkeit über dem Sollwert in der Vektorfahrweise über \SI{200}{\second}. Da die Sollgeschwindigkeit stark schwankt, ist eine quantitative Auswertung der Reglerperformance schwer möglich. Dennoch ist sowohl in Abbildung \ref{fig:istwert}, als auch bei der Vorführung zu sehen, dass die Performance für diese Anwendung gut genug ist. 
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{_Bilder/V_Sollwert.png}
-    \caption{Sollwert der Geschwindigkeit in der Vektorfahrweise über 200s X-Achse: Sollgeschwindigkeit in mm/s, Y-Achse: Zeit in s}
+    \caption{Sollwert der Geschwindigkeit in der Vektorfahrweise über 200s x-Achse: Sollgeschwindigkeit in mm/s, y-Achse: Zeit in s}
     \label{fig:sollwert}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{_Bilder/V_Istwert.png}
-    \caption{Istwert der Geschwindigkeit in der Vektorfahrweise über 200s X-Achse: Istgeschwindigkeit in mm/s, Y-Achse: Zeit in s}
+    \caption{Istwert der Geschwindigkeit in der Vektorfahrweise über 200s x-Achse: Istgeschwindigkeit in mm/s, y-Achse: Zeit in s}
     \label{fig:istwert}
 \end{figure}
 
 \subsection{Positionsfahrweise}
-Die Positionsfahrweise wurde ebenfalls nur quantitativ und experimentell optimiert. Zentrales Kriterium ist, dass die Lateralausrichtung deutlich schneller erreicht werden soll, als die Einfahrtsrichtung, um Lateralbewegungen im Bereich der Station zu vermeiden. Dies könnte den Greifer beschädigen. Abbildung \ref{fig:resultGSAY} und Abbildung \ref{fig:resultGSAX}  gemeinsam die zeigt die Anfahrweise einer Station. Nur die Bereich die gelb hinterlegt sind werden mit dem Positionregler ausgeführt. Der Ablauf ist wie folgt: 1. Der Roboter richtet sich nach dem vorgegeben Sollwinkel aus, es findet keine Bewegung in X- oder Y-Richtung statt. 2. Der Roboter fährt die Tasche an und nimmt das Werkstück auf 3. Gewerk 2 schaltet in Vektorfahrweise, um eine gerade Rückwärtsfahrt zu realisieren 4. Der RFID-Sensor wird in Positionsfahrweise wie in Schritt 2 angefahren. Eine Neuausrichtung des Winkels ist nicht nötig 5. Gewerk 2 schaltet wieder in Vektorfahrweise, der Roboter verlässt den Stationsbereich.
+\subsection{Positionsfahrweise}
+\noindent Die Positionsfahrweise wurde ebenfalls nur quantitativ und experimentell optimiert. Zentrales Kriterium ist, dass die Lateralausrichtung deutlich schneller erreicht werden soll als die Einfahrtsrichtung, um Lateralbewegungen im Bereich der Station zu vermeiden. Dies könnte den Greifer beschädigen. Abbildung \ref{fig:resultGSAY} und Abbildung \ref{fig:resultGSAX} zeigen gemeinsam die Anfahrweise einer Station. Nur die Bereiche, die gelb hinterlegt sind, werden mit dem Positionsregler ausgeführt. Der Ablauf ist wie folgt:
+
+\begin{enumerate}
+    \item Der Roboter richtet sich nach dem vorgegebenen Sollwinkel aus, es findet keine Bewegung in X- oder Y-Richtung statt.
+    \item Der Roboter fährt die Tasche an und nimmt das Werkstück auf.
+    \item Gewerk 2 schaltet in Vektorfahrweise, um eine gerade Rückwärtsfahrt zu realisieren.
+    \item Der RFID-Sensor wird in Positionsfahrweise wie in Schritt 2 angefahren. Eine Neuausrichtung des Winkels ist nicht nötig.
+    \item Gewerk 2 schaltet wieder in Vektorfahrweise, der Roboter verlässt den Stationsbereich.
+\end{enumerate}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{_Bilder/resultGSAY.png}
-    \caption{Anfahrweise einer Station in Y-Richtung}
+    \caption{Anfahrweise einer Station in y-Richtung}
     \label{fig:resultGSAY}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{_Bilder/resultGSAX.png}
-    \caption{Anfahrweise einer Station in X-Richtung}
+    \caption{Anfahrweise einer Station in x-Richtung}
     \label{fig:resultGSAX}
 \end{figure}
 
-Abbildung \ref{fig:resultGSAY} und \ref{fig:resultGSAX} zeigen, dass die entwurfene Reglerstruktur gut geeignet ist um die Anforderungen zu erfüllen. Die Lateralposition wird schnell erreicht und gehalten, die Einfahrtsrichtung ist gemächlicher, um der Laterausrichtung Zeit zu geben und das Material zu schonen. Das Ausrichten des Winkels ohne X- und Y-Bewegung kostet zwar Zeit, hier haben wir uns aber entschieden dem sicheren Anfahren höhere Priorität als dem schnellen Anfahren einzuräumen. Zwischen Umschalten auf die Positionsfahrweise und Erreichen der Sollposition vergehen mit Drehung etwa 4 Sekunden. Dieser Wert ist im Kontext des Projekts völlig ausreichend und die Fahrweise des Roboters fügt sich auch optisch gut in die Gesamtbewegung ein.
+Abbildung \ref{fig:resultGSAY} und \ref{fig:resultGSAX} zeigen, dass die entwurfene Reglerstruktur gut geeignet ist um die Anforderungen zu erfüllen. Die Lateralposition wird schnell erreicht und gehalten, die Einfahrtsrichtung ist gemächlicher, um der Laterausrichtung Zeit zu geben und das Material zu schonen. Das Ausrichten des Winkels ohne x- und y-Bewegung kostet zwar Zeit, hier haben wir uns aber entschieden dem sicheren Anfahren höhere Priorität als dem schnellen Anfahren einzuräumen. Zwischen Umschalten auf die Positionsfahrweise und Erreichen der Sollposition vergehen mit Drehung etwa 4 Sekunden. Dieser Wert ist im Kontext des Projekts völlig ausreichend und die Fahrweise des Roboters fügt sich auch optisch gut in die Gesamtbewegung ein.

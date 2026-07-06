@@ -149,15 +149,15 @@ Die Gesamtgeschwindigkeit des Roboters ergibt sich als Mittelwert aller drei Rä
 
 \begin{equation}
 \begin{bmatrix}
-v_x^{body} \\
-v_y^{body} \\
+\dot{x}_R \\
+\dot{y}_R \\
 \end{bmatrix}
 =
 \frac{1}{3} \sum_{j=1}^{3}
 \mathbf{R(\alpha_j)}\,\vec{V}_j^{(w)}
 \end{equation}
 
-Und die Rotationsgeschwindigkeit ergiebt sich ebenfalls aus dem Mittelwert der drei Raddrehzahlen, wobei der Radius des Roboters $R$ berücksichtigt wird:
+Und die Rotationsgeschwindigkeit ergibt sich ebenfalls aus dem Mittelwert der drei Raddrehzahlen, wobei der Radius des Roboters $R$ berücksichtigt wird:
 
 \begin{equation}
 \dot{\varphi} = \frac{1}{3R}(V_{w1} + V_{w2} + V_{w3})
@@ -167,9 +167,9 @@ Um diese allgemeinen Gleichungen auf den konkreten Roboter anzuwenden, müssen d
 
 \begin{equation}
     \begin{bmatrix}
-        v_x^{body} \\
-        v_y^{body} \\
-        \dot{\varphi}
+        \dot{x}_r \\
+        \dot{y}_r\\
+        \dot{\varphi}_r
     \end{bmatrix}
     =
     \begin{bmatrix}
@@ -189,8 +189,8 @@ Die Herleitung dieser Gleichung kann auch nochmal mit der in \cite{Hacene2019} v
 Die Umrechnung Geschwindigkeit in Weltkoordinaten erfolgt dabei wiefolgt, wobei $\varphi$ der aktuelle Winkel des Roboters im Raum ist:
 \begin{equation}
     \begin{bmatrix}
-        v_x^{world} \\
-        v_y^{world}
+        \dot{x}_w \\
+        \dot{y}_w
     \end{bmatrix}
     =
     \begin{bmatrix}
@@ -198,30 +198,29 @@ Die Umrechnung Geschwindigkeit in Weltkoordinaten erfolgt dabei wiefolgt, wobei 
         \sin(\varphi) & \cos(\varphi)
     \end{bmatrix}
     \begin{bmatrix}
-        v_x^{body} \\
-        v_y^{body}
-    \end{bmatrix}
+        \dot{x}_r \\
+        \dot{y}_r    \end{bmatrix}
 \end{equation}
 Die Winkelgeschwindigkeit des Roboters ist in Roboterkoordinaten, als auch Weltkoordinaten gleich definiert, weshlab hier keine Unterscheidung vorgenommen wird.\\
 
 Um schlussendlich die Position im Raum zu berechnen, integriert man die Geschwindigkeiten über die Zeit. Bei einer diskreten Integration mit einem Zeitschritt $\Delta t$ ergibt sich die folgende Formel für die Aktualisierung der Position:
 \begin{equation}
     \begin{bmatrix}
-        p_{x+1}^{world} \\
-        p_{y+1}^{world} \\
-        p_{\varphi+1}
+        x_{w, k+1} \\
+        y_{w, k+1} \\
+        \varphi_{w,k+1}
     \end{bmatrix}
     =
     \begin{bmatrix}
-        p_{x}^{world} \\
-        p_{y}^{world} \\
-        p_{\varphi}
+        x_{w, k} \\
+        y_{w, k} \\
+        \varphi_{w,k}
     \end{bmatrix} 
     + \Delta t \cdot
     \begin{bmatrix}
-        v_x^{world} \\
-        v_y^{world} \\
-        \omega
+        \dot{x}_w \\
+        \dot{y}_w \\
+        \dot{\varphi}_w
     \end{bmatrix}
 \end{equation}
 
