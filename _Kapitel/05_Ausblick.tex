@@ -1,7 +1,5 @@
-\section{Entwurf eines Fuzzy-Reglers}
-
-\subsection{Grundlegende Idee und Begründung}
-
+\chapter{Entwurf eines Fuzzy-Reglers}
+\label{sec:Fuzzy}
 Im Verlauf des Projekts entstand die Idee, zusätzlich einen Fuzzy-Regler zu entwerfen und die Fahrten alternativ über diesen zu realisieren. Da Fuzzy-Regler nicht auf einem exakten linearen Modell des Roboters basieren, sondern mit linguistischen Regeln arbeiten, wurde dieser Regleransatz als sinnvoll erachtet. Anstatt den analytischen Zusammenhang zwischen Regelabweichung und Stellgröße vollständig herzuleiten, wird das Reglerverhalten durch Zugehörigkeitsfunktionen und eine Regelbasis beschrieben. 
 
 Ein wesentlicher Vorteil des Fuzzy-Reglers besteht darin, dass sich sein Verhalten durch die gezielte Anpassung weniger, physikalisch nachvollziehbarer Parameter einstellen lässt. Bereits kleine Änderungen der Parameter der Zugehörigkeitsfunktionen ermöglichen eine systematische Anpassung des Fahrverhaltens an unterschiedliche Anforderungen, ohne die grundlegende Reglerstruktur verändern zu müssen. Ziel war es daher, den Regler möglichst allgemein auszulegen, sodass er als Baustein mit geringem Parametrieraufwand an neue Randbedingungen oder geänderte Anforderungen angepasst werden kann
@@ -106,7 +104,7 @@ Ziel der Simulation war nicht die Bestimmung vollständig optimaler Reglerparame
 \subsection{Zentrale Konfiguration}
 
 Alle wesentlichen Einstellungen der Simulation wurden in einer zentralen \texttt{CONFIG}-Struktur zusammengefasst. Dadurch können Start- und Zielposition, Simulationsparameter, Robotergeometrie, Kostenfunktionsgewichte sowie Optimierungsparameter an einer Stelle angepasst werden. Dies erleichtert das Testen verschiedener Einstellungen und verbessert gleichzeitig die Übersichtlichkeit des Programms.
-Diese eizelnen Teile der \texttt{CONFIG}-Struktur sind zur Übersicht nochmals in Tabelle~\ref{tab:config} veranschaulicht.
+Diese einzelnen Teile der \texttt{CONFIG}-Struktur sind zur Übersicht nochmals in Tabelle~\ref{tab:config} veranschaulicht.
 
 \begin{table}[H]
     \centering
@@ -191,7 +189,7 @@ Diese Werte dienen als obere Begrenzung der Sollgeschwindigkeiten innerhalb der 
 
 \subsection{Simulationsmodell und Ablauf}
 
-Die Simulation bildet den vollständigen Regelkreis des Roboters nach und dient als Grundlage für die Bewertung unterschiedlicher Parametersätze. Hierzu werden drei Instanzen des in Kapitel~2 ODERSO beschriebenen Fuzzy-Reglers für die Bewegungen in x-Richtung, y-Richtung sowie für die Orientierung verwendet. Zu Beginn jedes Simulationsschritts werden aus der aktuellen Positions- und Winkelfehler sowie deren Änderungen bestimmt. Diese Größen werden dem Fuzzy-Regler übergeben, welcher daraus translatorische und rotatorische Sollgeschwindigkeiten berechnet. Anschließend werden die Sollgeschwindigkeiten mithilfe der inversen Kinematik in Radgeschwindigkeiten umgerechnet. Überschreiten diese die zulässigen Grenzwerte des Roboters, erfolgt eine Begrenzung auf die maximal realisierbaren Radgeschwindigkeiten. Aus den begrenzten Radgeschwindigkeiten werden anschließend über die Vorwärtskinematik die tatsächlich erreichbaren translatorischen und rotatorischen Geschwindigkeiten bestimmt. Mit diesen Geschwindigkeiten wird die Roboterpose für den nächsten Simulationsschritt berechnet. Dieser Ablauf wird solange wiederholt, bis die Zielpose innerhalb der vorgegebenen Positions- und Orientierungstoleranzen erreicht ist oder die maximale Simulationsdauer überschritten wird.
+Die Simulation bildet den vollständigen Regelkreis des Roboters nach und dient als Grundlage für die Bewertung unterschiedlicher Parametersätze. Hierzu werden drei Instanzen des in Kapitel \ref{sec:Fuzzy} beschriebenen Fuzzy-Reglers für die Bewegungen in x-Richtung, y-Richtung sowie für die Orientierung verwendet. Zu Beginn jedes Simulationsschritts werden aus der aktuellen Positions- und Winkelfehler sowie deren Änderungen bestimmt. Diese Größen werden dem Fuzzy-Regler übergeben, welcher daraus translatorische und rotatorische Sollgeschwindigkeiten berechnet. Anschließend werden die Sollgeschwindigkeiten mithilfe der inversen Kinematik in Radgeschwindigkeiten umgerechnet. Überschreiten diese die zulässigen Grenzwerte des Roboters, erfolgt eine Begrenzung auf die maximal realisierbaren Radgeschwindigkeiten. Aus den begrenzten Radgeschwindigkeiten werden anschließend über die Vorwärtskinematik die tatsächlich erreichbaren translatorischen und rotatorischen Geschwindigkeiten bestimmt. Mit diesen Geschwindigkeiten wird die Roboterpose für den nächsten Simulationsschritt berechnet. Dieser Ablauf wird solange wiederholt, bis die Zielpose innerhalb der vorgegebenen Positions- und Orientierungstoleranzen erreicht ist oder die maximale Simulationsdauer überschritten wird.
 
 \subsection{Kostenfunktion}
 
@@ -253,7 +251,7 @@ Die Stellgrößenkosten ($J_u$) berücksichtigen unterschiedliche Gewichtungen f
 
 \subsection{Optimierungsverfahren}
 
-Zur Optimierung der sechs Skalierungsparameter wurde das Verfahren \texttt{differential\_evolution} aus der Bibliothek \texttt{scipy.optimize} verwendet. Aufgrund seiner Robustheit und der guten Dokumentation wurde es für diese Arbeit ausgewählt.
+Zur Optimierung der sechs Skalierungsparameter wurde das Verfahren \texttt{differential\allowbreak\_evolution} aus der Bibliothek \texttt{scipy.optimize} verwendet. Aufgrund seiner Robustheit und der guten Dokumentation wurde es für diese Arbeit ausgewählt.
 
 \subsection{Modellannahmen und Einschränkungen}
 
@@ -272,7 +270,7 @@ Die Simulation mit den Startparametern erreicht das Ziel bereits, zeigt aber ein
 
 \subsection{Numerische Ergebnisse}
 
-Die Ergebnisse wurden per Konsolenausgabe dokumentiert und umfassen die Kosten, Endwerte und optimierten Parameter. Für die Startparameter ergibt sich eine Gesamtkostenbewertung von etwa $661{,}529552$. Nach der Optimierung sinken die Kosten auf etwa $22{,}89056$. 
+Die Ergebnisse wurden per Konsolenausgabe dokumentiert und umfassen die Kosten, Endwerte und optimierten Parameter. Für die Startparameter ergibt sich eine Gesamtkostenbewertung von etwa $66{,}529552$. Nach der Optimierung sinken die Kosten auf etwa $22{,}89056$. 
 Die ermittelten Werte im Vergleich zu den gesetzten Simulationsstartwerten sind in Tabelle~\ref{tab:optimierte_parameter} dargestellt.
 
 

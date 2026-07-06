@@ -1,7 +1,7 @@
 \chapter{Regler}
-Das Kapitel arbeitet sich von der untersten Reglerebene am Rad bis zum übergeordneten Lageregler vor und folgt damit der Signalkette aus Abbildung Konzept in umgekehrter Richtung. Den Anfang macht der Drehzahlregler, der an jedem der drei Räder dafür sorgt, dass die vorgegebene Solldrehzahl anliegt. Da Gewerk 2 jedoch keine Raddrehzahlen, sondern eine Sollgeschwindigkeit des Roboters liefert, ist eine Transformation von Roboter in Motorkoordinaten nötig. Damit sind alle Bausteine für die Vektorfahrweise beisammen. Für die Positionsfahrweise kommt eine weitere Ebene hinzu: Die gemessene Position liegt in Weltkoordinaten vor und muss in das Roboterkoordinatensystem überführt werden. Darauf setzt schließlich der Lageregler auf, dessen Parameter über ein Gain-Scheduling an die jeweilige Situation angepasst werden, um eine zuverlässige Fahrt sicherzustellen.
+Das Kapitel arbeitet sich von der untersten Reglerebene am Rad bis zum übergeordneten Lageregler vor und folgt damit der Signalkette aus Abbildung \ref{fig:Blockschaltbild} in umgekehrter Richtung. Den Anfang macht der Drehzahlregler, der an jedem der drei Räder dafür sorgt, dass die vorgegebene Solldrehzahl anliegt. Da Gewerk 2 jedoch keine Raddrehzahlen, sondern eine Sollgeschwindigkeit des Roboters liefert, ist eine Transformation von Roboter in Motorkoordinaten nötig. Damit sind alle Bausteine für die Vektorfahrweise beisammen. Für die Positionsfahrweise kommt eine weitere Ebene hinzu: Die gemessene Position liegt in Weltkoordinaten vor und muss in das Roboterkoordinatensystem überführt werden. Darauf setzt schließlich der Lageregler auf, dessen Parameter über ein Gain-Scheduling an die jeweilige Situation angepasst werden, um eine zuverlässige Fahrt sicherzustellen.
 \section{Drehzahlregler}
-Der Drehzahlregler sorgt dafür, dass eine vorgegebene Sollgeschwindigkeit des Roboters auf die Motorbewegung der einzelnen Motoren übersetzt wird und korrekt umgesetzt wird. Der Drehzahlreger wird in TwinCAT als Funktionsbaustein umgesetzt. Als Eingangsgrößen werden Sollgeschwindigkeiten in X,Y, und $\theta$ im Roboterkoordinatensystembenötigt. Außerdem werden die Istgeschwindigkeiten der einzelnen Motoren an den Eingang zurückgeführt. Der Ausgang ist das Geschwindigkeitessignal für die einzelnen drei Motoren. Abbildung \ref{fig:Drehzahlregler_BB} zeigt den Drehzahlregler als Blackbox mit Eingangs- und Ausgangssignalen.
+Der Drehzahlregler sorgt dafür, dass eine vorgegebene Sollgeschwindigkeit des Roboters auf die Motorbewegung der einzelnen Motoren übersetzt wird und korrekt umgesetzt wird. Der Drehzahlregler wird in TwinCAT als Funktionsbaustein umgesetzt. Als Eingangsgrößen werden Sollgeschwindigkeiten in X,Y, und $\theta$ im Roboterkoordinatensystem benötigt. Außerdem werden die Istgeschwindigkeiten der einzelnen Motoren an den Eingang zurückgeführt. Der Ausgang ist das Geschwindigkeitssignal für die einzelnen drei Motoren. Abbildung \ref{fig:Drehzahlregler_BB} zeigt den Drehzahlregler als Blackbox mit Eingangs- und Ausgangssignalen.
 
 \begin{figure}[H]
     \centering
@@ -11,7 +11,7 @@ Der Drehzahlregler sorgt dafür, dass eine vorgegebene Sollgeschwindigkeit des R
 \end{figure}
 \subsection{Ein- und Ausgangssignale}
 \textbf{targetVel}\\
-Die Target Velocity ist die Sollgeschwidigkeit des Roboters im Koordinatensystem des Roboters. Sie wird in m/s angegeben und besteht aus drei voneinander unabhängigen Komponenten: x, y und $\theta$. Durch Überlagerung der Bewegungen dieser Komponenten ist der Roboter in der Lage sich in alle Richtungen im Raum zu bewegen.\\
+Die Target Velocity ist die Sollgeschwindigkeit des Roboters im Koordinatensystem des Roboters. Sie wird in m/s angegeben und besteht aus drei voneinander unabhängigen Komponenten: x, y und $\theta$. Durch Überlagerung der Bewegungen dieser Komponenten ist der Roboter in der Lage sich in alle Richtungen im Raum zu bewegen.\\
 \\
 \textbf{actualVelMotor}\\
 actualVelMotor1, -2 und -3 ist die Istgeschwindigkeit der einzelnen Motoren. Sie wird auch in m/s angegeben. Die Berechnung erfolgt über den Encoder des Motors und den Radumfang mit folgender Formel:
@@ -67,7 +67,7 @@ Dabei bezeichnen:
 Die von Gewerk 2 oder vom Positionsregler gelieferte Sollgeschwindigkeit liegt als kartesischer Geschwindigkeitsvektor im Koordinatensystem des Roboters vor (TargetVelocity, siehe oben) und muss für die einzelnen Motoren intern in eine jeweilige Solldrehzahl umgerechnet werden. \\
 
 
-Die Umrechnung von Roboter- in Motorbewegung erfolgt über die inverse kinematische Transformationsmatrix, die im Kapitel \textit{Beobachter} bereits für die umgekahrte Umrechnung von Raddrehzahlen in Roboterbewegung vorgestellt wurde (Gleichung \ref{eq:InversMatrix}). 
+Die Umrechnung von Roboter- in Motorbewegung erfolgt über die inverse kinematische Transformationsmatrix, die im Kapitel \textit{Beobachter} bereits für die umgekehrte Umrechnung von Raddrehzahlen in Roboterbewegung vorgestellt wurde (Gleichung \ref{eq:Vorwärtsmatrix}). 
 \begin{equation}
     \begin{bmatrix}
         \text{targetVelocityMotor1} \\
@@ -99,7 +99,7 @@ Der Geschwindigkeitsregler für die Radmotoren ist als PI-Regler ausgelegt. Er b
     \label{fig:Drehzahlregler_Intern}
 \end{figure}
 
-Der Regler ist als PI-Regler ausgelegt, um eine bleibende Regelabweichung zu eliminieren. Die Regelparameter sind experimentell ermittelt worden. Da die Regelerperformance mit diesem Parametern für alle drei Motoren zufriedenstellend ist (siehe Auswertung Vektorfahrweise), wurde auf eine quantitative Optimierung verzichtet. Die Parameter sind in Tabelle \ref{tab:Drehzahlregler_Parameter} zusammengefasst. Die exemplarische Umsetzung des Reglers in TwinCAT ist in Tabelle \ref{tab:Drehzahlregler_TwinCAT} dargestellt.
+Der Regler ist als PI-Regler ausgelegt, um eine bleibende Regelabweichung zu eliminieren. Die Regelparameter sind experimentell ermittelt worden. Da die Reglerperformance mit diesem Parametern für alle drei Motoren zufriedenstellend ist (siehe Auswertung Vektorfahrweise), wurde auf eine quantitative Optimierung verzichtet. Die Parameter sind in Tabelle \ref{tab:Drehzahlregler_Parameter} zusammengefasst. Die exemplarische Umsetzung des Reglers in TwinCAT ist in Tabelle \ref{tab:Drehzahlregler_TwinCAT} dargestellt.
 
 \begin{table}[H]
     \centering
@@ -296,9 +296,10 @@ Der I-Anteil besitzt somit in größerer Entfernung von der Station keinen Einfl
 \end{figure}
 
 Die gegenläufige Anpassung von P- und I-Anteil vereint somit zwei Anforderungen: Einerseits wird auf langen Fahrstrecken eine hohe Dynamik erzielt, andererseits erfolgt das Einfahren in die Station materialschonend mit hoher Positioniergenauigkeit.\\
+
 \textbf{Schrittkette des Anfahrens}
 Um Punkt 2 zu erfüllen, könnte man die Bewegungskoponenten in X- und Y-Richtung trennen und nacheinander abarbeiten. Dies würde jedoch gegen Punkt 1 verstoßen, da die Bewegung in X- und Y-Richtung nicht mehr schnell und flüssig wäre. Um sicherzustellen, dass die Tasche immer von vorne getroffen wird und trotzdem flüssig angefahren wird, wurde eine Schrittkette für das Anfahren mit unterschiedlichen Reglerparametern realisiert:\\
-\\
+
 \textbf{1. Ausrichtung des Winkels}
 Da die $\theta$-Ausrichtung des Roboter mit in der Drehmatrix steckt, beeinflusst eine Änderung der Drehung auch die Bewegung in X- und Y-Richtung in Weltkoordinaten stark. Das gleichzeitige Fahren und Drehen ist daher schwer umzusetzten, vorallem in Bereichen wo hohe Präzision verlangt wird. Letzlich haben wir uns dazu entscheiden die Drehung im Stillstand auszuführen, sobald von Vektor- auf Positionsfahrweise gewechselt wird. Der Winkel wird über einen P-Regler mit konstantem KP geregelt. Das KP beträgt 1,5 und ist bewusst aggressiv gewählt, um möglichst wenig Zeit im Stillstand zu verbringen. Sobald der Winkel in einem bestimmten Bereich liegt, wird die Bewegung in X- und Y-Richtung im nächsten Schritt freigeschaltet\\
 \\
