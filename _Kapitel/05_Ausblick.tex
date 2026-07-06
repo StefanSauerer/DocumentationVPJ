@@ -39,9 +39,9 @@ Ein klassischer Regler arbeitet mit festen Grenzwerten. Ein Positionsfehler von 
 
 Abbildung~\ref{fig:membership_funktionen_beispiel} zeigt schematisch den Aufbau von Zugehörigkeitsfunktionen eines Fuzzy-Reglers. Auch wenn hier beispielhaft andere Bezeichnungen verwendet werden, entspricht das dargestellte Prinzip dem im Projekt eingesetzten Regler.
 
-\subsection{Reglerstruktur für x, y und theta}
+\subsection{Reglerstruktur für x, y und $\theta$}
 
-Da sich ein omnidirektionaler Roboter unabhängig in x-Richtung, y-Richtung und um die eigene Achse $\theta$ bewegen kann, werden diese drei Bewegungsrichtungen getrennt geregelt. Für jede Richtung wird derselbe Fuzzy-Regler verwendet. Als Eingangsgrößen dienen jeweils der Positionsfehler sowie dessen Änderung. Im fortlaufenden beschrieben als error und derror. Für jede Richtung wird anhand des jeweiligen Positionsfehlers eine Sollgeschwindigkeit berechnet. Diese wird anschließend an die Kinematik übergeben und in Radgeschwindigkeiten umgerechnet. Die verwendeten Ein- und Ausgangsgrößen der drei Regelkanäle sind in Tabelle~\ref{tab:regelkanaele} dargestellt. \cite{Nguyen2022}
+Da sich ein omnidirektionaler Roboter unabhängig in x-Richtung, y-Richtung und um die eigene Achse bewegen kann, werden diese drei Bewegungsrichtungen getrennt geregelt. Für jede Richtung wird derselbe Fuzzy-Regler verwendet. Als Eingangsgrößen dienen jeweils der Positionsfehler sowie dessen Änderung. Im fortlaufenden beschrieben als error und derror. Für jede Richtung wird anhand des jeweiligen Positionsfehlers eine Sollgeschwindigkeit berechnet. Diese wird anschließend an die Kinematik übergeben und in Radgeschwindigkeiten umgerechnet. Die verwendeten Ein- und Ausgangsgrößen der drei Regelkanäle sind in Tabelle~\ref{tab:regelkanaele} dargestellt. \cite{Nguyen2022}
 
 \begin{table}[H]
     \centering
@@ -94,10 +94,9 @@ Die Matrix wurde so gewählt, dass bei großem Fehler zunächst eine starke Stel
 
 \subsection{Skalierung der realen Größen}
 
-Der Fuzzy-Regler arbeitet ausschließlich mit normierten Ein- und Ausgangsgrößen im Wertebereich von $-1$ bis $+1$. Reale Positions- und Winkelfehler können jedoch deutlich größere Werte annehmen und müssen daher vor der Verarbeitung auf diesen Bereich abgebildet werden. Ebenso muss die vom Fuzzy-Regler berechnete normierte Stellgröße anschließend wieder in reale translatorische beziehungsweise rotatorische Geschwindigkeiten umgerechnet werden. Die Skalierung erfolgt über jeweils einen Faktor für die Eingangs- und Ausgangsgrößen. Die Eingangsskalierung bestimmt, welcher reale Fehler einer maximalen Fuzzy-Eingangsgröße entspricht. Eine hohe Skalierung führt dazu, dass bereits kleine Fehler als große Fuzzy-Fehler interpretiert werden, wodurch der Regler aggressiver reagiert. Eine kleinere Skalierung bewirkt dagegen ein ruhigeres Regelverhalten. Die Ausgangsskalierung legt fest, welche reale Geschwindigkeit einer maximalen Fuzzy-Stellgröße entspricht und beeinflusst damit unmittelbar die Dynamik des Roboters. Für die translatorischen Bewegungen in x- und y-Richtung sowie für die Rotation wurden getrennte Skalierungsparameter verwendet, da sich die erforderlichen Stellgrößen und Regelcharakteristiken deutlich unterscheiden. Die Bestimmung geeigneter Skalierungsparameter erfolgt in Kapitel~\ref{sec:simulation} mithilfe einer simulationsbasierten Optimierung.
+Der Fuzzy-Regler arbeitet ausschließlich mit normierten Ein- und Ausgangsgrößen im Wertebereich von $-1$ bis $+1$. Reale Positions- und Winkelfehler können jedoch deutlich größere Werte annehmen und müssen daher vor der Verarbeitung auf diesen Bereich abgebildet werden. Ebenso muss die vom Fuzzy-Regler berechnete normierte Stellgröße anschließend wieder in reale translatorische beziehungsweise rotatorische Geschwindigkeiten umgerechnet werden. Die Skalierung erfolgt über jeweils einen Faktor für die Eingangs- und Ausgangsgrößen. Die Eingangsskalierung bestimmt, welcher reale Fehler einer maximalen Fuzzy-Eingangsgröße entspricht. Eine hohe Skalierung führt dazu, dass bereits kleine Fehler als große Fuzzy-Fehler interpretiert werden, wodurch der Regler aggressiver reagiert. Eine kleinere Skalierung bewirkt dagegen ein ruhigeres Regelverhalten. Die Ausgangsskalierung legt fest, welche reale Geschwindigkeit einer maximalen Fuzzy-Stellgröße entspricht und beeinflusst damit unmittelbar die Dynamik des Roboters. Für die translatorischen Bewegungen in x- und y-Richtung sowie für die Rotation wurden getrennte Skalierungsparameter verwendet, da sich die erforderlichen Stellgrößen und Regelcharakteristiken deutlich unterscheiden. Die Bestimmung geeigneter Skalierungsparameter erfolgt in Kapitel~\ref{sec:skalierung}.
 
 \section{Parameterbestimmung durch Python-Simulation}
-\label{sec:simulation}
 
 Ziel der Simulation war nicht die Bestimmung vollständig optimaler Reglerparameter, sondern die Ermittlung geeigneter Ausgangswerte für die anschließende Feinabstimmung am realen Roboter. Hierzu wurde eine Simulationsumgebung entwickelt, welche das Regelverhalten des Roboters reproduziert und unterschiedliche Parametersätze anhand einer Kostenfunktion bewertet. Optimiert wurden ausschließlich die sechs Skalierungsparameter des Fuzzy-Reglers. Diese bestimmen die Abbildung zwischen realen Positions- und Winkelfehlern sowie dem normierten Fuzzy-Bereich und legen gleichzeitig fest, wie die berechneten Stellgrößen wieder in reale translatorische und rotatorische Geschwindigkeiten umgesetzt werden.
 
@@ -164,7 +163,7 @@ Diese einzelnen Teile der \texttt{CONFIG}-Struktur sind zur Übersicht nochmals 
 \end{table}
 
 \subsection{Skalierung}
-
+\label{sec:skalierung}
 Für die Simulation wurden die in Kapitel~\ref{sec:simulation} beschriebenen Skalierungsparameter verwendet. Die Positionsfehler werden zunächst auf einen Bereich von \SI{-1}{\meter} bis \SI{1}{\meter} normiert und anschließend mithilfe der Skalierungsparameter auf den Fuzzy-Eingangsbereich abgebildet. Für den Winkelfehler erfolgt dieselbe Vorgehensweise mit einem Bereich von $-\pi$ bis $+\pi$. Zur Einhaltung der physikalischen Grenzen werden die Sollgeschwindigkeiten zusätzlich begrenzt. Für die translatorische Bewegung wurde eine maximale Geschwindigkeit von \SI{0.94}{\meter\per\second} verwendet. Die maximal zulässige Winkelgeschwindigkeit ergibt sich aus der maximalen Umfangsgeschwindigkeit der Räder und dem Abstand der Räder zum Mittelpunkt des Roboters:
 
 \begin{equation}
@@ -189,7 +188,7 @@ Diese Werte dienen als obere Begrenzung der Sollgeschwindigkeiten innerhalb der 
 
 \subsection{Simulationsmodell und Ablauf}
 
-Die Simulation bildet den vollständigen Regelkreis des Roboters nach und dient als Grundlage für die Bewertung unterschiedlicher Parametersätze. Hierzu werden drei Instanzen des in Kapitel \ref{sec:Fuzzy} beschriebenen Fuzzy-Reglers für die Bewegungen in x-Richtung, y-Richtung sowie für die Orientierung verwendet. Zu Beginn jedes Simulationsschritts werden aus der aktuellen Positions- und Winkelfehler sowie deren Änderungen bestimmt. Diese Größen werden dem Fuzzy-Regler übergeben, welcher daraus translatorische und rotatorische Sollgeschwindigkeiten berechnet. Anschließend werden die Sollgeschwindigkeiten mithilfe der inversen Kinematik in Radgeschwindigkeiten umgerechnet. Überschreiten diese die zulässigen Grenzwerte des Roboters, erfolgt eine Begrenzung auf die maximal realisierbaren Radgeschwindigkeiten. Aus den begrenzten Radgeschwindigkeiten werden anschließend über die Vorwärtskinematik die tatsächlich erreichbaren translatorischen und rotatorischen Geschwindigkeiten bestimmt. Mit diesen Geschwindigkeiten wird die Roboterpose für den nächsten Simulationsschritt berechnet. Dieser Ablauf wird solange wiederholt, bis die Zielpose innerhalb der vorgegebenen Positions- und Orientierungstoleranzen erreicht ist oder die maximale Simulationsdauer überschritten wird.
+Die Simulation bildet den vollständigen Regelkreis des Roboters nach und dient als Grundlage für die Bewertung unterschiedlicher Parametersätze. Hierzu werden drei Instanzen des in Kapitel \ref{sec:Fuzzy} beschriebenen Fuzzy-Reglers für die Bewegungen in x-Richtung, y-Richtung sowie für den Winkel verwendet. Zu Beginn jedes Simulationsschritts werden aus der aktuellen Positions- und Winkelfehler sowie deren Änderungen bestimmt. Diese Größen werden dem Fuzzy-Regler übergeben, welcher daraus translatorische und rotatorische Sollgeschwindigkeiten berechnet. Anschließend werden die Sollgeschwindigkeiten mithilfe des kinematischen Modells in Radgeschwindigkeiten umgerechnet. Überschreiten diese die zulässigen Grenzwerte des Roboters, erfolgt eine Begrenzung auf die maximal realisierbaren Radgeschwindigkeiten. Aus den begrenzten Radgeschwindigkeiten werden anschließend über die Vorwärtskinematik die tatsächlich erreichbaren translatorischen und rotatorischen Geschwindigkeiten bestimmt. Mit diesen Geschwindigkeiten wird die Roboterpose für den nächsten Simulationsschritt berechnet. Dieser Ablauf wird solange wiederholt, bis die Zielpose innerhalb der vorgegebenen Positions- und Orientierungstoleranzen erreicht ist oder die maximale Simulationsdauer überschritten wird.
 
 \subsection{Kostenfunktion}
 
@@ -260,21 +259,19 @@ Zur Begrenzung des Rechenaufwands wurden bei der Simulation bewusst mehrere Vere
 \subsection{Ergebnis der Simulation}
 
 Die Simulation mit den Startparametern erreicht das Ziel bereits, zeigt aber eine höhere Gesamtkostenbewertung als der optimierte Parametersatz. Abbildung~\ref{fig:simulation_gesamtauswertung} zeigt die Membership-Funktionen, Trajektorie, Winkelverlauf, Positions- und Geschindigkeisverläufe der simulierten Fahrt mit den Startwerten und der optimierten Fahrt.
-
-\begin{figure}[H]
-    \centering
-     \includegraphics[width=\textwidth]{_Bilder/simulation_gesamtauswertung}
-    \caption{Gesamtauswertung der Simulation mit Membership-Funktionen, Trajektorie, Winkelverlauf, Positions- und Geschindigkeisverläufen.}
-    \label{fig:simulation_gesamtauswertung}
-\end{figure}
+\newpage
+\begin{landscape}
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=1.5\textwidth]{_Bilder/simulation_gesamtauswertung}
+        \caption{Gesamtauswertung der Simulation mit Membership-Funktionen, Trajektorie, Winkelverlauf, Positions- und Geschindigkeisverläufen.}
+        \label{fig:simulation_gesamtauswertung}
+    \end{figure}
+\end{landscape}
 
 \subsection{Numerische Ergebnisse}
-
-Die Ergebnisse wurden per Konsolenausgabe dokumentiert und umfassen die Kosten, Endwerte und optimierten Parameter. Für die Startparameter ergibt sich eine Gesamtkostenbewertung von etwa $66{,}529552$. Nach der Optimierung sinken die Kosten auf etwa $22{,}89056$. 
+Die Ergebnisse wurden per Konsolenausgabe dokumentiert und umfassen die Kosten, Endwerte und optimierten Parameter. Für die Startparameter ergibt sich eine Gesamtkostenbewertung von etwa $66{,}5$. Nach der Optimierung sinken die Kosten auf etwa $22{,}9$. 
 Die ermittelten Werte im Vergleich zu den gesetzten Simulationsstartwerten sind in Tabelle~\ref{tab:optimierte_parameter} dargestellt.
-
-
-
 
 \begin{table}[H]
     \centering
@@ -325,13 +322,16 @@ Die ermittelten Werte im Vergleich zu den gesetzten Simulationsstartwerten sind 
 Die optimierte Skalierung zeigt unterschiedliche Anpassungen der Ein- und Ausgangsgrößen. Für den Positionsregler werden die Eingangsskalierungen \texttt{error\_xy} und \texttt{derror\_xy} reduziert, während die Ausgangsskalierung \texttt{output\_xy} erhöht wird. Dadurch reagiert der Regler weniger empfindlich auf Positionsfehler, gleichzeitig werden die resultierenden Fuzzy-Ausgangswerte stärker in Translationsgeschwindigkeit umgesetzt.
 
 Für die Winkelregelung wird \texttt{error\_theta} steiler skaliert und erreicht den Sättigungsbereich bereits bei kleineren Winkelabweichungen. Gleichzeitig werden \texttt{derror\_theta} und \texttt{output\_theta} reduziert, wodurch die maximale Drehgeschwindigkeit begrenzt und ein ruhigeres Regelverhalten erzielt wird. Abbildung~\ref{fig:skalierung_start_optimiert} verdeutlicht diese Anpassungen.
+\newpage
+\begin{landscape}
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=1.5\textwidth]{_Bilder/skalierung_start_optimiert}
+        \caption{Vergleich der Start- und Endskalierungen für Positionsfehler, Fehleränderung und Ausgangsgrößen.}
+        \label{fig:skalierung_start_optimiert}
+    \end{figure}
+\end{landscape}
 
-\begin{figure}[H]
-    \centering
-     \includegraphics[width=\textwidth]{_Bilder/skalierung_start_optimiert}
-    \caption{Vergleich der Start- und Endskalierungen für Positionsfehler, Fehleränderung und Ausgangsgrößen.}
-    \label{fig:skalierung_start_optimiert}
-\end{figure}
 
 \subsection{Bewertung der Simulation}
 
@@ -341,7 +341,7 @@ Die Simulation liefert einen strukturierten ersten Parametersatz und zeigt, dass
 
 \subsection{Integration in die bestehende Steuerungsstruktur}
 
-Der in Kapitel~3 entwickelte Fuzzy-Regler wurde in die bestehende Robotersteuerung unter TwinCAT integriert. Dabei ersetzt er ausschließlich die Berechnung der Sollgeschwindigkeiten innerhalb der Positionsregelung. Die darunterliegende Geschwindigkeitsregelung der einzelnen Motoren sowie die inverse Kinematik bleiben unverändert bestehen. Die zentrale Ablaufsteuerung erfolgt innerhalb der \texttt{MainMotorTask}. Dort werden die aktuelle Roboterpsition sowie die Sollposition eingelesen und an den Funktionsbaustein \texttt{FB\_Positionsregler} übergeben. Dieser berechnet aus den aktuellen Roboter- und Sollwerten die translatorischen Sollgeschwindigkeiten in x- und y-Richtung sowie die rotatorische Sollgeschwindigkeit. Da diese Geschwindigkeiten zunächst im Weltkoordinatensystem vorliegen, werden sie anschließend in das Roboterkoordinatensystem transformiert und an die inverse Kinematik übergeben. Dort werden die Sollgeschwindigkeiten der einzelnen Räder berechnet und als Führungsgrößen an die bestehenden Geschwindigkeitsregler der Motoren weitergegeben. Durch diese Struktur beschränkten sich die Änderungen an der Software auf den Bereich der Positionsregelung. Die vorhandene Motorregelung sowie die Hardwareansteuerung konnten unverändert übernommen werden, wodurch sich der Fuzzy-Regler ohne grundlegende Änderungen in die bestehende Softwarearchitektur integrieren ließ.
+Der in Kapitel~3 entwickelte Fuzzy-Regler wurde in die bestehende Robotersteuerung unter TwinCAT integriert. Dabei ersetzt er ausschließlich die Berechnung der Sollgeschwindigkeiten innerhalb der Positionsregelung. Die darunterliegende Geschwindigkeitsregelung der einzelnen Motoren bleiben unverändert bestehen. Die zentrale Ablaufsteuerung erfolgt innerhalb der \texttt{MainMotorTask}. Dort werden die aktuelle Roboterpsition sowie die Sollposition eingelesen und an den Funktionsbaustein \texttt{FB\_Positionsregler} übergeben. Dieser berechnet aus den aktuellen Roboter- und Sollwerten die translatorischen Sollgeschwindigkeiten in x- und y-Richtung sowie die rotatorische Sollgeschwindigkeit. Da diese Geschwindigkeiten zunächst im Weltkoordinatensystem vorliegen, werden sie anschließend in das Roboterkoordinatensystem transformiert und an die Kinematik übergeben. Dort werden die Sollgeschwindigkeiten der einzelnen Räder berechnet und als Führungsgrößen an die bestehenden Geschwindigkeitsregler der Motoren weitergegeben. Durch diese Struktur beschränkten sich die Änderungen an der Software auf den Bereich der Positionsregelung. Die vorhandene Motorregelung sowie die Hardwareansteuerung konnten unverändert übernommen werden, wodurch sich der Fuzzy-Regler ohne grundlegende Änderungen in die bestehende Softwarearchitektur integrieren ließ.
 
 \subsection{Praktische Erweiterungen}
 
@@ -362,7 +362,7 @@ Zur Überprüfung der Positionsregelung wurde eine beispielhafte Fahrt mit mehre
     \label{fig:reale_positionsfahrt_xy}
 \end{figure}
 
-Die Messergebnisse zeigen, dass alle Zielpositionen zuverlässig erreicht werden. Auch die Orientierungsänderungen werden während der Fahrt korrekt ausgeführt. Die rekonstruierten Fahrbahnen verlaufen weitgehend entlang der geplanten Bewegungsrichtungen und bestätigen die korrekte Umsetzung des Fuzzy-Reglers auf dem realen System. Zur besseren Veranschaulichung der einzelnen Bewegungsabschnitte ist in Abbildung~\ref{fig:reale_positionsfahrt_y} exemplarisch der Verlauf der y-Position über der Zeit dargestellt. Die einzelnen Plateaus entsprechen den angefahrenen Zielpositionen, während die linearen Übergänge die Bewegungen zwischen den einzelnen Punkten zeigen. Die Abbildung verdeutlicht, dass die Zielpositionen stabil erreicht werden und verhart bis die anderen Position, z.B. in X-Richtung, erreicht sind. 
+Die Messergebnisse zeigen, dass alle Zielpositionen zuverlässig erreicht werden. Auch die Orientierungsänderungen werden während der Fahrt korrekt ausgeführt. Die rekonstruierten Fahrbahnen verlaufen weitgehend entlang der geplanten Bewegungsrichtungen und bestätigen die korrekte Umsetzung des Fuzzy-Reglers auf dem realen System. Zur besseren Veranschaulichung der einzelnen Bewegungsabschnitte ist in Abbildung~\ref{fig:reale_positionsfahrt_y} exemplarisch der Verlauf der y-Position über der Zeit dargestellt. Die einzelnen Plateaus entsprechen den angefahrenen Zielpositionen, während die linearen Übergänge die Bewegungen zwischen den einzelnen Punkten zeigen. Die Abbildung verdeutlicht, dass die Zielpositionen stabil erreicht werden und verhart bis die anderen Position, z.B. in x-Richtung, erreicht sind. 
 
 \begin{figure}[H]
     \centering
@@ -399,4 +399,4 @@ Die im Rahmen der Simulation ermittelten Reglerparameter stellten eine sehr gute
 
 \section{Bewertung des Ergebniss}
 
-Im Rahmen dieser Arbeit wurde ein Fuzzy-Regler für einen omnidirektionalen Roboter entwickelt, simuliert und erfolgreich in die bestehende Robotersteuerung integriert. Ziel war es, eine einheitliche Reglerstruktur zu schaffen, die sowohl für Positionsfahrten als auch als Grundlage für zukünftige Vektorfahrten verwendet werden kann. Die Simulation ermöglichte eine automatische Bestimmung geeigneter Skalierungsparameter und zeigte sich als gut geeignet. Die anschließenden Fahrversuche zeigten, dass der Regler Zielpositionen und Zielorientierungen zuverlässig anfährt und auch bei engen Toleranzen ein stabiles Regelverhalten erreicht. Kleinere Anpassungen der Simulationsparameter waren aufgrund realer Einflüsse wie mechanischer Toleranzen und der Federung im Bereich der Ablageposition erforderlich, änderten jedoch nichts am grundsätzlichen Erfolg des entwickelten Regelungskonzepts. Besonders vorteilhaft erwiesen sich der modulare Aufbau des Reglers, die übersichtliche Regelbasis sowie die Möglichkeit, dieselbe Reglerstruktur sowohl für Positions- als auch für Vektorfahrten zu verwenden. Die Parametrierung erfolgt ausschließlich über wenige Skalierungsparameter und kann dadurch einfach an unterschiedliche Anforderungen angepasst werden. Insgesamt konnten die zu Beginn formulierten Ziele erreicht werden. Der entwickelte Fuzzy-Regler stellt eine robuste und gut nachvollziehbare Lösung für die Regelung des omnidirektionalen Roboters dar und bildet eine geeignete Grundlage für zukünftige Erweiterungen. Für zukünftige Arbeiten bietet sich insbesondere eine Erweiterung der Simulation um ein dynamisches Robotermodell an. Darüber hinaus könnten weitere Reglerparameter, beispielsweise die Zugehörigkeitsfunktionen oder die Regelbasis selbst, automatisch optimiert sowie unterschiedliche Fahrszenarien gleichzeitig zur Parametrierung herangezogen werden. Ebenso stellt die Umsetzung einer kontinuierlichen Vektorfahrt durch gleitende Zielpunkte einen vielversprechenden nächsten Entwicklungsschritt dar.
+Im Rahmen dieser Arbeit wurde ein Fuzzy-Regler für einen omnidirektionalen Roboter entwickelt, simuliert und erfolgreich in die bestehende Robotersteuerung integriert. Ziel war es, eine einheitliche Reglerstruktur zu schaffen, die sowohl für Positionsfahrten als auch als Grundlage für zukünftige Vektorfahrten verwendet werden kann. Die Simulation ermöglichte eine automatische Bestimmung geeigneter Skalierungsparameter und zeigte sich als gut geeignet. Die anschließenden Fahrversuche zeigten, dass der Regler Zielpositionen und Zielorientierungen zuverlässig anfährt und auch bei höheren Anforderungen an die Präzision ein gutes Regelverhalten erreicht. Kleinere Anpassungen der Simulationsparameter waren aufgrund realer Einflüsse wie mechanischer Toleranzen und der Federung im Bereich der Ablageposition erforderlich, änderten jedoch nichts am grundsätzlichen Erfolg des entwickelten Regelungskonzepts. Besonders vorteilhaft erwiesen sich der modulare Aufbau des Reglers, die übersichtliche Regelbasis sowie die Möglichkeit, dieselbe Reglerstruktur sowohl für Positions- als auch für Vektorfahrten zu verwenden. Die Parametrierung erfolgt ausschließlich über wenige Skalierungsparameter und kann dadurch einfach an unterschiedliche Anforderungen angepasst werden. Insgesamt konnten die zu Beginn formulierten Ziele erreicht werden. Der entwickelte Fuzzy-Regler stellt eine robuste und gut nachvollziehbare Lösung für die Regelung des omnidirektionalen Roboters dar und bildet eine geeignete Grundlage für zukünftige Erweiterungen. Für zukünftige Arbeiten bietet sich insbesondere eine Erweiterung der Simulation um ein dynamisches Robotermodell an. Darüber hinaus könnten weitere Reglerparameter, beispielsweise die Zugehörigkeitsfunktionen oder die Regelbasis selbst, automatisch optimiert sowie unterschiedliche Fahrszenarien gleichzeitig zur Parametrierung herangezogen werden. Ebenso stellt die Umsetzung einer kontinuierlichen Vektorfahrt durch gleitende Zielpunkte einen vielversprechenden nächsten Entwicklungsschritt dar.

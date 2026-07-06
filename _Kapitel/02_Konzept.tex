@@ -1,15 +1,18 @@
 \chapter{Konzept}
+\section{Überblick}
 Das Konzept zur Erfüllung der Aufgaben von Gewerk 3 wurden in enger Zusammenarbeit mit Gewerk 2 erstellt. Schon in den ersten Wochen des Projektes hat sich Gewerk 2 für ein Gradientenverfahren entschieden, um die Bahnplanung und die Kollisionvermeidung zu realisieren. Als Reaktion auf dieses Vorhaben wurden dann konzeptionell zwei Ansätze verfolgt:\\
-Für die freie Fahrt - also alle Bereiche außerhalb der Taschenbereiche - wird von Gewerk 2 ein Geschwindigkeitssollwert und eine Richtung übermittelt. Dieser Sollwert muss von einem Geschwindigkeitsregler umgesetzt werden. Dieser Modus heißt Vektorregelung. Ein Positionsregler wird in diesem Modus nicht benötigt.\\
-Für die Taschenbereiche - also dort wo hohe Präzision verlangt wird - wird von Gewerk 2 ein Positionssollwert übermittelt. Dieser Sollwert muss von einem Positionsregler umgesetzt werden. Dieser Positionsregler generiert basierend auf der aktuellen Position ein Geschwindigkeitssollwert. Dieser wird dann an den Geschwindigkeitsregler weitergeleitet. Dieser Modus heißt Positionregelung.\\
+Für die freie Fahrt - also alle Bereiche außerhalb der Taschenbereiche - wird von Gewerk 2 nur ein Geschwindigkeitssollwert und eine Richtung übermittelt. Dieser Sollwert muss von einem Geschwindigkeitsregler umgesetzt werden. Dieser Modus heißt Vektorregelung. Ein Positionsregler wird in diesem Modus nicht benötigt.\\
+Für die Taschenbereiche - also dort wo hohe Präzision verlangt wird - wird von Gewerk 2 ein einzelnerPositionssollwert übermittelt. Dieser Sollwert muss von einem Positionsregler umgesetzt werden. Dieser Positionsregler generiert basierend auf der aktuellen Position ein Geschwindigkeitssollwert. Dieser wird dann an den Geschwindigkeitsregler weitergeleitet. Dieser Modus heißt Positionregelung.\\
 In beiden Modi wird die aktuelle Position der Roboter durch einen Beobachter geschätzt. Die aktuelle Position wird entweder an Gewerk 2 übermittelt (Vektorregelung) oder mit der Sollposition (Positionregelung) verglichen. Der Beobachter wird von Gewerk 3 implementiert und getunt. Abbildung \ref{fig:Blockschaltbild} zeigt ein Blockschaltbild des verfolgten Konzepts.\\
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\textwidth]{_Bilder/Blockschaltbild.png}
-    \caption{Blockschaltbild der Bahnregelung. Komponenten der Vektorregelung in rot und Komponenten der Positionsregelung in blau}
-    \label{fig:Blockschaltbild}
-\end{figure}
+\begin{landscape}
+    \begin{figure}[ht]
+        \centering
+        \includegraphics[width=1.5\textwidth]{_Bilder/Blockschaltbild.png}
+        \caption{Blockschaltbild der Bahnregelung. Komponenten der Vektorregelung in rot und Komponenten der Positionsregelung in blau}
+        \label{fig:Blockschaltbild}
+    \end{figure}
+\end{landscape}
 
 \section{Schnittstellen}
 \label{sec:Schnittstellen}
@@ -26,13 +29,13 @@ Die Kommunikation zwischen der Bahnplanung (Gewerk 2) und der Robotersteuerung (
     \quad Int & inGeschwindigk. & Fahrgeschwindigkeit \\
     Int & inControl & 0=idle, 1=Stop, 2=Reset, 3=Vektor, 4=Position \\
     struct & sPositions & \\
-    \quad Int & inX & x-Position \\
-    \quad Int & inY & y-Position \\
+    \quad Int & inX & x-Sollposition \\
+    \quad Int & inY & y-Sollposition \\
     \quad Real & inWinkel & Ausrichtung \\
     \bottomrule
     \end{tabular} 
 \end{table}
-In Gegenrichtung stellt die Robotersteuerung Informationen über die aktuell berechnete Roboterposition sowie den aktuellen Betriebszustand bereit. Dadurch erhält die Bahnplanung kontinuierlich Rückmeldungen über die Position des Roboters und den Fortschritt der ausgeführten Fahrbefehle. Die Trennung von Befehls- und Statusdaten ermöglicht eine klare Strukturierung der Kommunikation zwischen beiden Gewerken und vereinfacht die Erweiterung sowie Wartung des Gesamtsystems. 
+In Gegenrichtung stellt die Robotersteuerung Informationen über die aktuell berechnete Roboterposition sowie den aktuellen Betriebszustand bereit. Dadurch erhält die Bahnplanung kontinuierlich Rückmeldungen über die Position des Roboters und den Fortschritt der ausgeführten Fahrbefehle.
 
 \begin{table}[H]
     \centering
@@ -42,8 +45,8 @@ In Gegenrichtung stellt die Robotersteuerung Informationen über die aktuell ber
     \textbf{Datentyp} & \textbf{Name} & \textbf{Kommentar} \\
     \midrule
     struct & sKoordinaten & Berechnete Position in Weltkoordinaten \\
-    \quad Real & reX & X-Position \\
-    \quad Real & reY & Y-Position \\
+    \quad Real & reX & X-Istposition \\
+    \quad Real & reY & Y-Istposition \\
     \quad Real & reWinkel & Berechnete Ausrichtung des Roboters in Grad \\
     Int & inStatus & 0=offline, 1=Betriebsbereit, 2=Laufend,\newline
     3=Ziel erreicht, 4=Fehler \\
