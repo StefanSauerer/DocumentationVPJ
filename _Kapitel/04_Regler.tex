@@ -19,7 +19,7 @@ actualVelMotor1, -2 und -3 ist die Istgeschwindigkeit der einzelnen Motoren. Sie
     \text{VelWheel1} = -\frac{n_{\text{fromMotor}}}{n_{\text{max}}} \cdot \frac{n_{\text{max,MotorRPM}}}{60} \cdot \ddot{u} \cdot 2\pi \cdot r_{\text{Wheel}}
 \end{equation}
 
-\noindent Dabei bezeichnen:
+\noindent{} Dabei bezeichnen:
 \begin{table}[H]
     \centering    
     \label{tab:VelWheel_Formelzeichen}
@@ -48,7 +48,7 @@ VelocityToMotor1, -2 und -3 ist das jeweilige Ausgangssignal des Drehzahlreglers
     \text{VelocityToMotor1} = \text{VelWheel1} \cdot \text{skalPos}
 \end{equation}
 
-\noindent Dabei bezeichnen:
+\noindent{} Dabei bezeichnen:
 \begin{table}[H]
     \centering    
     \label{tab:VelocityToMotor_Formelzeichen}
@@ -67,7 +67,7 @@ VelocityToMotor1, -2 und -3 ist das jeweilige Ausgangssignal des Drehzahlreglers
 Die von Gewerk 2 oder vom Positionsregler gelieferte Sollgeschwindigkeit liegt als kartesischer Geschwindigkeitsvektor im Koordinatensystem des Roboters vor (TargetVelocity, siehe oben) und muss für die einzelnen Motoren intern in eine jeweilige Solldrehzahl umgerechnet werden. \\
 
 
-\noindent Die Umrechnung von Roboter- in Motorbewegung erfolgt über die inverse kinematische Transformationsmatrix, die im Kapitel \textit{Beobachter} bereits für die umgekahrte Umrechnung von Raddrehzahlen in Roboterbewegung vorgestellt wurde (Gleichung 3.8). 
+\noindent{} Die Umrechnung von Roboter- in Motorbewegung erfolgt über die inverse kinematische Transformationsmatrix, die im Kapitel \textit{Beobachter} bereits für die umgekahrte Umrechnung von Raddrehzahlen in Roboterbewegung vorgestellt wurde (Gleichung 3.8). 
 \begin{equation}
     \begin{bmatrix}
         \text{targetVelocityMotor1} \\
@@ -87,8 +87,7 @@ Die von Gewerk 2 oder vom Positionsregler gelieferte Sollgeschwindigkeit liegt a
     \end{bmatrix}
 \end{equation}
 
-
-\noindent Das Ergebnis dieser Transformation, \text{targetVelocityMotor1}, -2 und -3, entspricht der jeweiligen Solldrehzahl der drei Motoren und dient als Eingangsgröße für den im nächsten Abschnitt Geschwindigkeitsregler.
+\noindent{} Das Ergebnis dieser Transformation, $\text{targetVelocityMotor1}$, -2 und -3, entspricht der jeweiligen Solldrehzahl der drei Motoren und dient als Eingangsgröße für den im nächsten Abschnitt Geschwindigkeitsregler.
 \subsection{Interne Reglerstruktur}
 \label{InterneReglerstruktur}
 Der Geschwindigkeitsregler für die Radmotoren ist als PI-Regler ausgelegt. Er bildet aus den beiden Eingangssignalen Sollwert und Istwert einen Regelfehler, welcher über die beiden Reglerpfade proportional und integral verarbeitet wird. Der Regler bedient die 3 Motoren unabhängig voneinander, sodass die Reglerstruktur aus 3 parallelen aber identischen SISO Reglern besteht. Abbildung \ref{fig:Drehzahlregler_Intern} zeigt die interne Struktur des Drehzahlreglers für einen Motor.
@@ -100,7 +99,7 @@ Der Geschwindigkeitsregler für die Radmotoren ist als PI-Regler ausgelegt. Er b
     \label{fig:Drehzahlregler_Intern}
 \end{figure}
 
-\noindent Der Regler ist als PI-Regler ausgelegt, um eine bleibende Regelabweichung zu eliminieren. Die Regelparameter sind experimentell ermittelt worden. Da die Regelerperformance mit diesem Parametern für alle drei Motoren zufriedenstellend ist (siehe Auswertung Vektorfahrweise), wurde auf eine quantitative Optimierung verzichtet. Die Parameter sind in Tabelle \ref{tab:Drehzahlregler_Parameter} zusammengefasst. Die exemplarische Umsetzung des Reglers in TwinCAT ist in Tabelle \ref{tab:Drehzahlregler_TwinCAT} dargestellt.
+\noindent{} Der Regler ist als PI-Regler ausgelegt, um eine bleibende Regelabweichung zu eliminieren. Die Regelparameter sind experimentell ermittelt worden. Da die Regelerperformance mit diesem Parametern für alle drei Motoren zufriedenstellend ist (siehe Auswertung Vektorfahrweise), wurde auf eine quantitative Optimierung verzichtet. Die Parameter sind in Tabelle \ref{tab:Drehzahlregler_Parameter} zusammengefasst. Die exemplarische Umsetzung des Reglers in TwinCAT ist in Tabelle \ref{tab:Drehzahlregler_TwinCAT} dargestellt.
 
 \begin{table}[H]
     \centering
@@ -193,7 +192,7 @@ Für die x- und y-Position sind die Reglerparameter KP und KI von außen verstel
 \subsection{Umrechnung von Welt- und Roboterkoordinaten}
 Die vom Positionsregler berechnete Sollgeschwindigkeit liegt zunächst im Weltkoordinatensystem vor (W\_X\_targetSpeed, W\_Y\_targetSpeed, W\_Theta\_targetSpeed), da auch die zugrunde liegende Positionsmessung (actualPos) im Weltkoordinatensystem erfolgt. Da der nachgelagerte Drehzahlregler jedoch eine Sollgeschwindigkeit im Koordinatensystem des Roboters (TargetVelocity) erwartet, muss die Sollgeschwindigkeit vor der Weitergabe entsprechend der aktuellen Orientierung des Roboters transformiert werden.
 
-\noindent Die Transformation erfolgt über eine Rotation um den aktuellen Orientierungswinkel des Roboters $\varphi_{\text{ist}}$ (\texttt{actualPos.reWinkel}). Für die translatorischen Geschwindigkeitskomponenten $\dot{x}$ und $\dot{y}$ ergibt sich damit folgende Drehmatrix:
+\noindent{} Die Transformation erfolgt über eine Rotation um den aktuellen Orientierungswinkel des Roboters $\varphi_{\text{ist}}$ (\texttt{actualPos.reWinkel}). Für die translatorischen Geschwindigkeitskomponenten $\dot{x}$ und $\dot{y}$ ergibt sich damit folgende Drehmatrix:
 \begin{equation}
     \begin{bmatrix}
         \dot{x}_{\text{r}} \\
@@ -211,7 +210,7 @@ Die vom Positionsregler berechnete Sollgeschwindigkeit liegt zunächst im Weltko
 \end{equation}
 
 
-\noindent Die Winkelgeschwindigkeit $\dot{\varphi}$ (W\_Theta\_targetSpeed) bleibt von dieser Transformation unberührt, die Drehgeschwindigkeit des Roboters um seinen eigenen Mittelpunkt ist in beiden Koordinatensystemen identisch.\\
+\noindent{} Die Winkelgeschwindigkeit $\dot{\varphi}$ (W\_Theta\_targetSpeed) bleibt von dieser Transformation unberührt, die Drehgeschwindigkeit des Roboters um seinen eigenen Mittelpunkt ist in beiden Koordinatensystemen identisch.\\
 Somit schließt sich für den Regler ein vierter Schritt an:
 
 \begin{table}[H]
@@ -268,9 +267,9 @@ K_{P,\mathrm{min}} = 0{,}1,\qquad
 K_{P,\mathrm{max}} = 3{,}0.
 \]
 
-\noindent Dadurch ist der P-Anteil in unmittelbarer Stationsnähe vollständig deaktiviert. 
+\noindent{} Dadurch ist der P-Anteil in unmittelbarer Stationsnähe vollständig deaktiviert. 
 
- \noindentDer Integralanteil wird entgegengesetzt zum P-Anteil angepasst:
+ \noindent{} Der Integralanteil wird entgegengesetzt zum P-Anteil angepasst:
 
 \[
 K_I =
@@ -341,7 +340,6 @@ Bei der Vektorfahrweise wird nur der Geschwindigkeitsregler benötigt. Er soll d
     \label{fig:istwert}
 \end{figure}
 
-\subsection{Positionsfahrweise}
 \subsection{Positionsfahrweise}
 \noindent Die Positionsfahrweise wurde ebenfalls nur quantitativ und experimentell optimiert. Zentrales Kriterium ist, dass die Lateralausrichtung deutlich schneller erreicht werden soll als die Einfahrtsrichtung, um Lateralbewegungen im Bereich der Station zu vermeiden. Dies könnte den Greifer beschädigen. Abbildung \ref{fig:resultGSAY} und Abbildung \ref{fig:resultGSAX} zeigen gemeinsam die Anfahrweise einer Station. Nur die Bereiche, die gelb hinterlegt sind, werden mit dem Positionsregler ausgeführt. Der Ablauf ist wie folgt:
 

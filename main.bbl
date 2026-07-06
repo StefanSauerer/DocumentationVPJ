@@ -1,5 +1,5 @@
 % $ biblatex auxiliary file $
-% $ biblatex bbl format version 3.2 $
+% $ biblatex bbl format version 3.3 $
 % Do not modify the above lines!
 %
 % This is an auxiliary file used by the 'biblatex' package.
@@ -18,8 +18,8 @@
 
 
 \refsection{0}
-  \datalist[entry]{nty/global//global/global}
-    \entry{ErhardNLR2025}{misc}{}
+  \datalist[entry]{nty/global//global/global/global}
+    \entry{ErhardNLR2025}{misc}{}{}
       \name{author}{1}{}{%
         {{hash=ca986bbd034fb72f0e2452d3dfad53c1}{%
            family={Erhard},
@@ -29,10 +29,12 @@
       }
       \strng{namehash}{ca986bbd034fb72f0e2452d3dfad53c1}
       \strng{fullhash}{ca986bbd034fb72f0e2452d3dfad53c1}
+      \strng{fullhashraw}{ca986bbd034fb72f0e2452d3dfad53c1}
       \strng{bibnamehash}{ca986bbd034fb72f0e2452d3dfad53c1}
       \strng{authorbibnamehash}{ca986bbd034fb72f0e2452d3dfad53c1}
       \strng{authornamehash}{ca986bbd034fb72f0e2452d3dfad53c1}
       \strng{authorfullhash}{ca986bbd034fb72f0e2452d3dfad53c1}
+      \strng{authorfullhashraw}{ca986bbd034fb72f0e2452d3dfad53c1}
       \field{sortinit}{E}
       \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
       \field{labelnamesource}{author}
@@ -41,7 +43,7 @@
       \field{title}{Nichtlineare Regelung}
       \field{year}{2025}
     \endentry
-    \entry{Hacene2019}{article}{}
+    \entry{Hacene2019}{article}{}{}
       \name{author}{2}{}{%
         {{hash=f5fb6e41d52f218cb0880e099a5125b9}{%
            family={Hacene},
@@ -56,10 +58,12 @@
       }
       \strng{namehash}{552808d212617f921512fbc2d0d18ecd}
       \strng{fullhash}{552808d212617f921512fbc2d0d18ecd}
+      \strng{fullhashraw}{552808d212617f921512fbc2d0d18ecd}
       \strng{bibnamehash}{552808d212617f921512fbc2d0d18ecd}
       \strng{authorbibnamehash}{552808d212617f921512fbc2d0d18ecd}
       \strng{authornamehash}{552808d212617f921512fbc2d0d18ecd}
       \strng{authorfullhash}{552808d212617f921512fbc2d0d18ecd}
+      \strng{authorfullhashraw}{552808d212617f921512fbc2d0d18ecd}
       \field{sortinit}{H}
       \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
       \field{labelnamesource}{author}
@@ -75,7 +79,7 @@
       \verb 10.1007/s40313-019-00439-0
       \endverb
     \endentry
-    \entry{lunze_regelungstechnik1}{book}{}
+    \entry{lunze_regelungstechnik1}{book}{}{}
       \name{author}{1}{}{%
         {{hash=4229949aab4df09799280ea8dfc50322}{%
            family={Lunze},
@@ -88,10 +92,12 @@
       }
       \strng{namehash}{4229949aab4df09799280ea8dfc50322}
       \strng{fullhash}{4229949aab4df09799280ea8dfc50322}
+      \strng{fullhashraw}{4229949aab4df09799280ea8dfc50322}
       \strng{bibnamehash}{4229949aab4df09799280ea8dfc50322}
       \strng{authorbibnamehash}{4229949aab4df09799280ea8dfc50322}
       \strng{authornamehash}{4229949aab4df09799280ea8dfc50322}
       \strng{authorfullhash}{4229949aab4df09799280ea8dfc50322}
+      \strng{authorfullhashraw}{4229949aab4df09799280ea8dfc50322}
       \field{sortinit}{L}
       \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
       \field{labelnamesource}{author}
@@ -101,7 +107,7 @@
       \field{title}{Regelungstechnik 1: Systemtheoretische Grundlagen, Analyse und Entwurf einschleifiger Regelungen}
       \field{year}{2016}
     \endentry
-    \entry{Mendili2017}{article}{}
+    \entry{Mendili2017}{article}{}{}
       \name{author}{2}{}{%
         {{hash=2e7e5aa8f856e876562d03a8457c4876}{%
            family={Mendili},
@@ -116,10 +122,12 @@
       }
       \strng{namehash}{3b052cf3d6ab55df35e7da283bf78007}
       \strng{fullhash}{3b052cf3d6ab55df35e7da283bf78007}
+      \strng{fullhashraw}{3b052cf3d6ab55df35e7da283bf78007}
       \strng{bibnamehash}{3b052cf3d6ab55df35e7da283bf78007}
       \strng{authorbibnamehash}{3b052cf3d6ab55df35e7da283bf78007}
       \strng{authornamehash}{3b052cf3d6ab55df35e7da283bf78007}
       \strng{authorfullhash}{3b052cf3d6ab55df35e7da283bf78007}
+      \strng{authorfullhashraw}{3b052cf3d6ab55df35e7da283bf78007}
       \field{sortinit}{M}
       \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
       \field{labelnamesource}{author}
@@ -134,7 +142,7 @@
       \verb 10.1155/2017/5341381
       \endverb
     \endentry
-    \entry{Mondal2019}{inproceedings}{}
+    \entry{Mondal2019}{inproceedings}{}{}
       \name{author}{5}{}{%
         {{hash=49ee37d7cf273458c8fc017834a8f9d1}{%
            family={Mondal},
@@ -164,10 +172,12 @@
       }
       \strng{namehash}{0655a22ffe14e83e07d30bd3e359ce11}
       \strng{fullhash}{0afd9d9a0c5f93ee94ce0762a4df0f9f}
+      \strng{fullhashraw}{0afd9d9a0c5f93ee94ce0762a4df0f9f}
       \strng{bibnamehash}{0655a22ffe14e83e07d30bd3e359ce11}
       \strng{authorbibnamehash}{0655a22ffe14e83e07d30bd3e359ce11}
       \strng{authornamehash}{0655a22ffe14e83e07d30bd3e359ce11}
       \strng{authorfullhash}{0afd9d9a0c5f93ee94ce0762a4df0f9f}
+      \strng{authorfullhashraw}{0afd9d9a0c5f93ee94ce0762a4df0f9f}
       \field{sortinit}{M}
       \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
       \field{labelnamesource}{author}
@@ -181,7 +191,7 @@
       \verb 10.2316/P.2019.860-017
       \endverb
     \endentry
-    \entry{Nguyen2022}{incollection}{}
+    \entry{Nguyen2022}{incollection}{}{}
       \name{author}{2}{}{%
         {{hash=cdc7b6f5f6c7f211abccd74e60d69d39}{%
            family={Nguyen},
@@ -199,10 +209,12 @@
       }
       \strng{namehash}{ea08d57376c00ed70c04937cac9a6220}
       \strng{fullhash}{ea08d57376c00ed70c04937cac9a6220}
+      \strng{fullhashraw}{ea08d57376c00ed70c04937cac9a6220}
       \strng{bibnamehash}{ea08d57376c00ed70c04937cac9a6220}
       \strng{authorbibnamehash}{ea08d57376c00ed70c04937cac9a6220}
       \strng{authornamehash}{ea08d57376c00ed70c04937cac9a6220}
       \strng{authorfullhash}{ea08d57376c00ed70c04937cac9a6220}
+      \strng{authorfullhashraw}{ea08d57376c00ed70c04937cac9a6220}
       \field{sortinit}{N}
       \field{sortinithash}{22369a73d5f88983a108b63f07f37084}
       \field{labelnamesource}{author}
@@ -218,7 +230,7 @@
       \verb 10.1007/978-981-19-3394-3_56
       \endverb
     \endentry
-    \entry{Pehlivan2022}{article}{}
+    \entry{Pehlivan2022}{article}{}{}
       \name{author}{3}{}{%
         {{hash=82726fa92a48936a1deee3d12129151f}{%
            family={Pehlivan},
@@ -238,10 +250,12 @@
       }
       \strng{namehash}{2b050514f53b116f66bfec9b1b7f88b4}
       \strng{fullhash}{2b050514f53b116f66bfec9b1b7f88b4}
+      \strng{fullhashraw}{2b050514f53b116f66bfec9b1b7f88b4}
       \strng{bibnamehash}{2b050514f53b116f66bfec9b1b7f88b4}
       \strng{authorbibnamehash}{2b050514f53b116f66bfec9b1b7f88b4}
       \strng{authornamehash}{2b050514f53b116f66bfec9b1b7f88b4}
       \strng{authorfullhash}{2b050514f53b116f66bfec9b1b7f88b4}
+      \strng{authorfullhashraw}{2b050514f53b116f66bfec9b1b7f88b4}
       \field{sortinit}{P}
       \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
       \field{labelnamesource}{author}

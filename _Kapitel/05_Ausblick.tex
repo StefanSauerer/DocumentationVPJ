@@ -1,13 +1,19 @@
-\chapter{Entwurf eines Fuzzy-Reglers}
+\section{Entwurf eines Fuzzy-Reglers}
 
-\section{Grundlegende Idee und Begründung}
-Bis dahin fuhr der Roboter auf den langen, geraden Bahnen im Vektorfahrt-Modus. An den einzelnen Stationen angekommen, hielt er kurz an und wechselte anschließend in den Positionsfahrt-Modus.Im Verlauf des Projekts entstand die Idee, zusätzlich einen Fuzzy-Regler zu entwerfen und die Fahrten alternativ auch über diesen zu realisieren. Ein wesentlicher Vorteil bestünde darin, dass der Roboter nicht mehr zwischen den verschiedenen Fahrmodi wechseln müsste. Stattdessen könnte er die Zielpositionen in einer kontinuierlichen, flüssigen Bewegung anfahren, ohne an jeder Position anzuhalten. Darüber hinaus wäre es möglich, seitliche, vorwärts-, rückwärts- und rotierende Bewegungen auszuführen, ohne den Roboter zuvor in Fahrtrichtung ausrichten zu müssen. Da Fuzzy-Regler nicht auf einem exakten linearen Modell des Roboters basieren, sondern mit linguistischen Regeln arbeiten, wurde dieser Regleransatz als sinnvoll erachtet. Anstatt den analytischen Zusammenhang zwischen Regelabweichung und Stellgröße vollständig herzuleiten, wird das Reglerverhalten durch Zugehörigkeitsfunktionen und eine Regelbasis beschrieben. Dadurch kann auf eine aufwendige mathematische Modellierung verzichtet werden. Eine exakte Modellierung des Roboters unter Berücksichtigung von Reibung, Schlupf, Verzögerungen und Sättigungseffekten hätte den Entwicklungsaufwand erheblich erhöht. Ein weiterer Vorteil des Fuzzy-Reglers besteht darin, dass er mit wenigen Parametern relativ einfach an unterschiedliche Anwendungen angepasst werden kann. Daher war es das Ziel, den Regler möglichst allgemein aufzubauen, sodass er später als Baustein für komplexere Fahrmanöver eingesetzt und schnell an verschiedene Anforderungsprofile angepasst werden kann. Dadurch sollte der Regler eine höhere Flexibilität bei zukünftigen Änderungen der Bahnplanung ermöglichen. So könnte beispielsweise die bisherige Vektorfahrt durch eine Punktliste oder einen gleitenden Zielwert ersetzt werden, ohne dass grundlegende Änderungen am Regler erforderlich wären. Darüber hinaus wollte unsere Gruppe praktische Erfahrungen mit Fuzzy-Reglern sammeln. Zwar war bereits theoretisches Wissen zu dieser Reglerstruktur vorhanden, praktische Erfahrungen lagen jedoch noch nicht vor. Das Projekt bot daher die Möglichkeit, diese Wissenslücke in einem kontrollierten Umfeld zu schließen und Erfahrungen im Entwurf sowie in der Implementierung eines Fuzzy-Reglers zu sammeln. Ziel war es daher, einen Fuzzy-Regler zu entwerfen, zu implementieren und seine Eignung für unterschiedliche Fahrarten eines omnidirektionalen Roboters experimentell zu untersuchen. \cite{Nguyen2022,Mondal2019,Mendili2017}
+\subsection{Grundlegende Idee und Begründung}
+
+Im Verlauf des Projekts entstand die Idee, zusätzlich einen Fuzzy-Regler zu entwerfen und die Fahrten alternativ über diesen zu realisieren. Da Fuzzy-Regler nicht auf einem exakten linearen Modell des Roboters basieren, sondern mit linguistischen Regeln arbeiten, wurde dieser Regleransatz als sinnvoll erachtet. Anstatt den analytischen Zusammenhang zwischen Regelabweichung und Stellgröße vollständig herzuleiten, wird das Reglerverhalten durch Zugehörigkeitsfunktionen und eine Regelbasis beschrieben. 
+
+Ein wesentlicher Vorteil des Fuzzy-Reglers besteht darin, dass sich sein Verhalten durch die gezielte Anpassung weniger, physikalisch nachvollziehbarer Parameter einstellen lässt. Bereits kleine Änderungen der Parameter der Zugehörigkeitsfunktionen ermöglichen eine systematische Anpassung des Fahrverhaltens an unterschiedliche Anforderungen, ohne die grundlegende Reglerstruktur verändern zu müssen. Ziel war es daher, den Regler möglichst allgemein auszulegen, sodass er als Baustein mit geringem Parametrieraufwand an neue Randbedingungen oder geänderte Anforderungen angepasst werden kann
+
+
+Darüber hinaus wollte unsere Gruppe praktische Erfahrungen mit Fuzzy-Reglern sammeln. Zwar war bereits theoretisches Wissen zu dieser Reglerstruktur vorhanden, praktische Erfahrungen lagen jedoch noch nicht vor. Das Projekt bot daher die Möglichkeit, diese Wissenslücke in einem kontrollierten Umfeld zu schließen und Erfahrungen im Entwurf sowie in der Implementierung eines Fuzzy-Reglers zu sammeln. Ziel war es daher, einen Fuzzy-Regler zu entwerfen, zu implementieren und seine Eignung für unterschiedliche Fahrarten eines omnidirektionalen Roboters experimentell zu untersuchen. \cite{Nguyen2022,Mondal2019,Mendili2017}
 
 \section{Beschreibung Fuzzy-Regler für omnidirektionalen Roboter}
 
 \subsection{Erklärung Fuzzy}
 
-Ein klassischer Regler arbeitet mit festen Grenzwerten. Ein Positionsfehler von z.B. \SI{0.10}{\meter} führt immer nach einer vorgegebenen Berechnung zu genau einer Stellgröße. Ein Fuzzy-Regler arbeitet dagegen mit mehreren Regelbereichen. Liegt der aktuelle Fehler zwischen zwei Bereichen, wird nicht sprunghaft von einer Regel zur nächsten gewechselt. Stattdessen wird zwischen den beiden zugehörigen Stellgrößen entsprechend der jeweiligen Zugehörigkeit interpoliert. Da zyklisch neu berechnet wird, entstehen stetige Übergänge zwischen den einzelnen Regelbereichen. Die Stellgröße ändert sich kontinuierlich und nicht sprunghaft, wodurch der Roboter ruhiger fährt und ruckartige Bewegungen vermieden werden. Im Projekt wurden für jede Ein- und Ausgangsgröße fünf Regelbereiche definiert: NB, NS, ZE, PS und PB. Diese stehen für Negative Big, Negative Small, Zero, Positive Small und Positive Big. Jedem Bereich ist eine eigene Regel mit einer entsprechenden Stellgröße zugeordnet. Die verwendeten Zugehörigkeitsfunktionen sind dreiecksförmig beziehungsweise an den Randbereichen trapezförmig ausgeführt. Diese Einteilung ist zur Übersicht nochmals in Tabelle \ref{tab:linguistische_zustaende} veranschaulicht. \cite{Nguyen2022}
+Ein klassischer Regler arbeitet mit festen Grenzwerten. Ein Positionsfehler von z.B. \SI{0.10}{\meter} führt immer nach einer vorgegebenen Berechnung zu genau einer Stellgröße. Ein Fuzzy-Regler arbeitet dagegen mit mehreren Regelbereichen. Liegt der aktuelle Fehler zwischen zwei Bereichen, wird nicht sprunghaft von einer Regel zur nächsten gewechselt. Stattdessen wird zwischen den beiden zugehörigen Stellgrößen entsprechend der jeweiligen Zugehörigkeit interpoliert. Da zyklisch neu berechnet wird, entstehen stetige Übergänge zwischen den einzelnen Regelbereichen. Die Stellgröße ändert sich kontinuierlich und nicht sprunghaft, wodurch der Roboter ruhiger fährt und ruckartige Bewegungen vermieden werden. Im Projekt wurden für jede Ein- und Ausgangsgröße fünf Regelbereiche definiert: NB, NS, ZE, PS und PB. Diese stehen für Negative Big, Negative Small, Zero, Positive Small und Positive Big. Jedem Bereich ist eine eigene Regel mit einer entsprechenden Stellgröße zugeordnet. Die verwendeten Zugehörigkeitsfunktionen sind dreiecksförmig beziehungsweise an den Randbereichen trapezförmig ausgeführt. Diese Einteilung ist zur Übersicht nochmals in Tabelle~\ref{tab:linguistische_zustaende} veranschaulicht. \cite{Nguyen2022}
 
 \begin{table}[H]
     \centering
@@ -28,8 +34,7 @@ Ein klassischer Regler arbeitet mit festen Grenzwerten. Ein Positionsfehler von 
 
 \begin{figure}[H]
     \centering
-    % TODO: Bild einsetzen
-     \includegraphics[width=0.85\textwidth]{_Bilder/BSP_Bild.png}
+     \includegraphics[width=0.85\textwidth]{_Bilder/BSP_Bild}
     \caption{Schematischer Aufbau von Zugehörigkeitsfunktionen eines Fuzzy-Reglers(übernommen aus \cite{Pehlivan2022}).}
     \label{fig:membership_funktionen_beispiel}
 \end{figure}
@@ -68,7 +73,7 @@ Da sich ein omnidirektionaler Roboter unabhängig in x-Richtung, y-Richtung und 
 
 \subsection{Regelbasis}
 
-Die Regelbasis legt fest, welche Stellgröße sich aus einer bestimmten Kombination von Fehler und Fehleränderung ergibt. Für jeden der drei Regelkanäle wird dieselbe $5 \times 5$-Regelmatrix verwendet. Die Zeilen beschreiben den aktuellen Fehlerzustand, die Spalten dessen Änderung. Das Ergebnis der Regelmatrix ist zunächst ein linguistischer Ausgangswert. Dieser wird anschließend in eine kontinuierliche numerische Stellgröße umgerechnet, welche direkt als Sollwert für die Bewegung des Roboters verwendet werden kann. Dieser Vorgang wird als Defuzzifizierung bezeichnet. Die verwendete Regelmatrix ist in Tabelle \ref{tab:regelmatrix} dargestellt. \cite{Nguyen2022}
+Die Regelbasis legt fest, welche Stellgröße sich aus einer bestimmten Kombination von Fehler und Fehleränderung ergibt. Für jeden der drei Regelkanäle wird dieselbe $5 \times 5$-Regelmatrix verwendet. Die Zeilen beschreiben den aktuellen Fehlerzustand, die Spalten dessen Änderung. Das Ergebnis der Regelmatrix ist zunächst ein linguistischer Ausgangswert. Dieser wird anschließend in eine kontinuierliche numerische Stellgröße umgerechnet, welche direkt als Sollwert für die Bewegung des Roboters verwendet werden kann. Dieser Vorgang wird als Defuzzifizierung bezeichnet. Die verwendete Regelmatrix ist in Tabelle~\ref{tab:regelmatrix} dargestellt. \cite{Nguyen2022}
 
 \begin{table}[H]
     \centering
@@ -91,7 +96,7 @@ Die Matrix wurde so gewählt, dass bei großem Fehler zunächst eine starke Stel
 
 \subsection{Skalierung der realen Größen}
 
-Der Fuzzy-Regler arbeitet ausschließlich mit normierten Ein- und Ausgangsgrößen im Wertebereich von $-1$ bis $+1$. Reale Positions- und Winkelfehler können jedoch deutlich größere Werte annehmen und müssen daher vor der Verarbeitung auf diesen Bereich abgebildet werden. Ebenso muss die vom Fuzzy-Regler berechnete normierte Stellgröße anschließend wieder in reale translatorische beziehungsweise rotatorische Geschwindigkeiten umgerechnet werden. Die Skalierung erfolgt über jeweils einen Faktor für die Eingangs- und Ausgangsgrößen. Die Eingangsskalierung bestimmt, welcher reale Fehler einer maximalen Fuzzy-Eingangsgröße entspricht. Eine hohe Skalierung führt dazu, dass bereits kleine Fehler als große Fuzzy-Fehler interpretiert werden, wodurch der Regler aggressiver reagiert. Eine kleinere Skalierung bewirkt dagegen ein ruhigeres Regelverhalten. Die Ausgangsskalierung legt fest, welche reale Geschwindigkeit einer maximalen Fuzzy-Stellgröße entspricht und beeinflusst damit unmittelbar die Dynamik des Roboters. Für die translatorischen Bewegungen in x- und y-Richtung sowie für die Rotation wurden getrennte Skalierungsparameter verwendet, da sich die erforderlichen Stellgrößen und Regelcharakteristiken deutlich unterscheiden. Die Bestimmung geeigneter Skalierungsparameter erfolgt in Kapitel\ref{sec:simulation} mithilfe einer simulationsbasierten Optimierung.
+Der Fuzzy-Regler arbeitet ausschließlich mit normierten Ein- und Ausgangsgrößen im Wertebereich von $-1$ bis $+1$. Reale Positions- und Winkelfehler können jedoch deutlich größere Werte annehmen und müssen daher vor der Verarbeitung auf diesen Bereich abgebildet werden. Ebenso muss die vom Fuzzy-Regler berechnete normierte Stellgröße anschließend wieder in reale translatorische beziehungsweise rotatorische Geschwindigkeiten umgerechnet werden. Die Skalierung erfolgt über jeweils einen Faktor für die Eingangs- und Ausgangsgrößen. Die Eingangsskalierung bestimmt, welcher reale Fehler einer maximalen Fuzzy-Eingangsgröße entspricht. Eine hohe Skalierung führt dazu, dass bereits kleine Fehler als große Fuzzy-Fehler interpretiert werden, wodurch der Regler aggressiver reagiert. Eine kleinere Skalierung bewirkt dagegen ein ruhigeres Regelverhalten. Die Ausgangsskalierung legt fest, welche reale Geschwindigkeit einer maximalen Fuzzy-Stellgröße entspricht und beeinflusst damit unmittelbar die Dynamik des Roboters. Für die translatorischen Bewegungen in x- und y-Richtung sowie für die Rotation wurden getrennte Skalierungsparameter verwendet, da sich die erforderlichen Stellgrößen und Regelcharakteristiken deutlich unterscheiden. Die Bestimmung geeigneter Skalierungsparameter erfolgt in Kapitel~\ref{sec:simulation} mithilfe einer simulationsbasierten Optimierung.
 
 \section{Parameterbestimmung durch Python-Simulation}
 \label{sec:simulation}
@@ -101,7 +106,7 @@ Ziel der Simulation war nicht die Bestimmung vollständig optimaler Reglerparame
 \subsection{Zentrale Konfiguration}
 
 Alle wesentlichen Einstellungen der Simulation wurden in einer zentralen \texttt{CONFIG}-Struktur zusammengefasst. Dadurch können Start- und Zielposition, Simulationsparameter, Robotergeometrie, Kostenfunktionsgewichte sowie Optimierungsparameter an einer Stelle angepasst werden. Dies erleichtert das Testen verschiedener Einstellungen und verbessert gleichzeitig die Übersichtlichkeit des Programms.
-Diese eizelnen Teile der \texttt{CONFIG}-Struktur sind zur Übersicht nochmals in Tabelle \ref{tab:config} veranschaulicht.
+Diese eizelnen Teile der \texttt{CONFIG}-Struktur sind zur Übersicht nochmals in Tabelle~\ref{tab:config} veranschaulicht.
 
 \begin{table}[H]
     \centering
@@ -190,37 +195,61 @@ Die Simulation bildet den vollständigen Regelkreis des Roboters nach und dient 
 
 \subsection{Kostenfunktion}
 
-Die Qualität eines Parametersatzes wird über eine Kostenfunktion bewertet. Dabei werden sowohl die Genauigkeit der Zielerreichung als auch das dynamische Verhalten des Roboters berücksichtigt. Die Kostenfunktion setzt sich aus Positionskosten, Winkelkosten, Zeitkosten, Stellgrößenkosten, Glattheitskosten sowie einer Strafkomponente zusammen, falls die Zielposition innerhalb der vorgegebenen Toleranzen nicht erreicht wird. Die Einzelnen Kostenfaktoren und deren Bedeutung sind nochmals in Tabelle~\ref{tab:kostenfunktion} dargestellt. 
+Die Qualität eines Parametersatzes wird über eine Kostenfunktion bewertet. Dabei werden sowohl die Genauigkeit der Zielerreichung als auch das dynamische Verhalten des Roboters berücksichtigt. Die Gesamtkosten setzen sich aus Positions-, Winkel-, Zeit-, Stellgrößen- und Glattheitskosten sowie einem Strafterm zusammen. Die einzelnen Bestandteile der Kostenfunktion sind in Tabelle~\ref{tab:kostenfunktion} zusammengefasst.
 
 \begin{table}[H]
     \centering
     \caption{Bestandteile der Kostenfunktion}
     \label{tab:kostenfunktion}
     \small
-    \begin{tabularx}{\textwidth}{lX}
+    \begin{tabularx}{\textwidth}{l l X}
         \toprule
-        \textbf{Kostenanteil} & \textbf{Bedeutung} \\
+        \textbf{Kostenanteil} & \textbf{Term} & \textbf{Bedeutung} \\
         \midrule
         Positionskosten &
+        $J_{\mathrm{pos}}$ &
         Bewerten die verbleibende Positionsabweichung am Ende der Simulation. \\
 
         Winkelkosten &
+        $J_{\theta}$ &
         Bewerten die verbleibende Orientierungsabweichung. \\
 
         Zeitkosten &
-        Bevorzugen kürzere Fahrzeiten beziehungsweise weniger Simulationsschritte. \\
+        $J_t$ &
+        Bevorzugen kurze Fahrzeiten beziehungsweise wenige Simulationsschritte. \\
 
         Stellgrößenkosten &
+        $J_u$ &
         Bestrafen hohe translatorische und rotatorische Stellgrößen. \\
 
         Glattheitskosten &
-        Bestrafen Sprünge in $v_x$, $v_y$ und $\omega$ und reduzieren damit Oszillationen. \\
+        $J_s$ &
+        Bestrafen Änderungen der Stellgrößen und reduzieren dadurch Oszillationen. \\
 
         Penalty &
-        Hohe Zusatzkosten, wenn das Ziel innerhalb der Toleranzen nicht erreicht wird. \\
+        $J_{\mathrm{penalty}}$ &
+        Zusatzkosten, wenn das Ziel innerhalb der vorgegebenen Toleranzen nicht erreicht wird. \\
         \bottomrule
     \end{tabularx}
 \end{table}
+
+Die Gewichtung der einzelnen Kostenanteile wurde anhand mehrerer Simulationsläufe iterativ abgestimmt. Ziel war es, ein ausgewogenes Optimierungsverhalten hinsichtlich der Zielgenauigkeit, der Fahrzeit sowie eines möglichst ruhigen und kontinuierlichen Stellgrößenverlaufs zu erzielen. Daraus ergibt sich die folgende Gesamtkostenfunktion:
+
+\begin{equation}
+\begin{aligned}
+J ={}&
+0.8\,J_{\mathrm{pos}}
++10.0\,J_{\theta}
++0.001\,J_t \\
+&+J_u
++J_s
++J_{\mathrm{penalty}} .
+\end{aligned}
+\label{eq:kostenfunktion}
+\end{equation}
+
+Die Stellgrößenkosten ($J_u$) berücksichtigen unterschiedliche Gewichtungen für translatorische und rotatorische Stellgrößen. Analog werden in den Glattheitskosten ($J_s$) Änderungen der translatorischen und rotatorischen Stellgrößen unterschiedlich gewichtet, um einen möglichst ruhigen und kontinuierlichen Stellgrößenverlauf zu fördern. Der Strafterm ($J_{\mathrm{penalty}}$) nimmt den Wert 50 an, wenn das Ziel innerhalb der vorgegebenen Toleranzen nicht erreicht wird; andernfalls ist ($J_{\mathrm{penalty}}=0$).
+
 
 \subsection{Optimierungsverfahren}
 
@@ -232,19 +261,22 @@ Zur Begrenzung des Rechenaufwands wurden bei der Simulation bewusst mehrere Vere
 
 \subsection{Ergebnis der Simulation}
 
-Die Simulation mit den Startparametern erreicht das Ziel bereits, zeigt aber eine höhere Gesamtkostenbewertung als der optimierte Parametersatz. Abbildung~\ref{fig:simulation_gesamtauswertung} zeigt die Membership-Funktionen, Trajektorie, Winkelverlauf, Fehlerverläufe und Stellgrößen der simulierten Fahrt mit den Startwerten und der optimierten Fahrt.
+Die Simulation mit den Startparametern erreicht das Ziel bereits, zeigt aber eine höhere Gesamtkostenbewertung als der optimierte Parametersatz. Abbildung~\ref{fig:simulation_gesamtauswertung} zeigt die Membership-Funktionen, Trajektorie, Winkelverlauf, Positions- und Geschindigkeisverläufe der simulierten Fahrt mit den Startwerten und der optimierten Fahrt.
 
 \begin{figure}[H]
     \centering
      \includegraphics[width=\textwidth]{_Bilder/simulation_gesamtauswertung}
-    \caption{Gesamtauswertung der Simulation mit Membership-Funktionen, Trajektorie, Winkelverlauf, Fehlern und Stellgrößen.}
+    \caption{Gesamtauswertung der Simulation mit Membership-Funktionen, Trajektorie, Winkelverlauf, Positions- und Geschindigkeisverläufen.}
     \label{fig:simulation_gesamtauswertung}
 \end{figure}
 
 \subsection{Numerische Ergebnisse}
 
-Die Ergebnisse wurden per Konsolenausgabe dokumentiert und umfassen die Kosten, Endwerte und optimierten Parameter. Für die Startparameter ergibt sich eine Gesamtkostenbewertung von etwa $4{,}078445$. Nach der Optimierung sinken die Kosten auf etwa $2{,}711807$. 
+Die Ergebnisse wurden per Konsolenausgabe dokumentiert und umfassen die Kosten, Endwerte und optimierten Parameter. Für die Startparameter ergibt sich eine Gesamtkostenbewertung von etwa $661{,}529552$. Nach der Optimierung sinken die Kosten auf etwa $22{,}89056$. 
 Die ermittelten Werte im Vergleich zu den gesetzten Simulationsstartwerten sind in Tabelle~\ref{tab:optimierte_parameter} dargestellt.
+
+
+
 
 \begin{table}[H]
     \centering
@@ -258,32 +290,32 @@ Die ermittelten Werte im Vergleich zu den gesetzten Simulationsstartwerten sind 
 
         \texttt{error\_scale\_xy} &
         $2{,}000000$ &
-        $4{,}445558$ &
+        $1{,}697825$ &
         Positionsfehler in x/y werden im Fuzzy-Bereich stärker gewichtet. \\
 
         \texttt{derror\_scale\_xy} &
         $0{,}500000$ &
-        $0{,}335655$ &
+        $0{,}121643$  &
         Fehleränderungen in x/y werden etwas schwächer gewichtet. \\
 
         \texttt{output\_scale\_xy} &
         $0{,}500000$ &
-        $0{,}266333$ &
+        $0{,}780699$ &
         Maximale translatorische Ausgangsgeschwindigkeit wird reduziert. \\
 
         \texttt{error\_scale\_theta} &
         $1{,}500000$ &
-        $3{,}962339$ &
+        $3{,}277952$ &
         Winkelfehler wird deutlich empfindlicher bewertet. \\
 
         \texttt{derror\_scale\_theta} &
         $0{,}300000$ &
-        $0{,}242722$ &
+        $0{,}123418$ &
         Änderung des Winkelfehlers wird leicht schwächer gewichtet. \\
 
         \texttt{output\_scale\_theta} &
         $1{,}000000$ &
-        $0{,}488234$ &
+        $0{,}530832$ &
         Drehgeschwindigkeit wird etwa halbiert. \\
 
         \bottomrule
@@ -292,8 +324,9 @@ Die ermittelten Werte im Vergleich zu den gesetzten Simulationsstartwerten sind 
 
 \subsection{Interpretation der optimierten Skalierung}
 
-Die optimierten Parameter zeigen ein klares Muster. Die Eingangsskalierung für Positions- und Winkelfehler wird erhöht. Dadurch reagiert der Regler bereits bei kleineren realen Fehlern deutlicher. Gleichzeitig werden die Ausgangsskalierungen reduziert. Das bedeutet, dass der Regler zwar früh in stärkere Fuzzy-Bereiche gelangt, die reale Geschwindigkeit aber begrenzt bleibt. Dieses Verhalten kann zu einer feineren Annäherung an das Ziel führen, weil die Stellgröße nicht zu groß wird. Die Abbildung ~\ref{fig:skalierung_start_optimiert} zur Skalierung macht diesen Zusammenhang sichtbar. Die optimierte \texttt{error\_xy}-Skalierung erreicht den normierten Sättigungsbereich schneller als die Startskalierung. Bei \texttt{output\_xy} ist die optimierte reale Geschwindigkeit dagegen kleiner. Für $\theta$ ist ein ähnlicher Effekt zu erkennen: Der Winkelfehler wird empfindlicher in den Fuzzy-Bereich abgebildet, während die reale Drehgeschwindigkeit reduziert wird.
+Die optimierte Skalierung zeigt unterschiedliche Anpassungen der Ein- und Ausgangsgrößen. Für den Positionsregler werden die Eingangsskalierungen \texttt{error\_xy} und \texttt{derror\_xy} reduziert, während die Ausgangsskalierung \texttt{output\_xy} erhöht wird. Dadurch reagiert der Regler weniger empfindlich auf Positionsfehler, gleichzeitig werden die resultierenden Fuzzy-Ausgangswerte stärker in Translationsgeschwindigkeit umgesetzt.
 
+Für die Winkelregelung wird \texttt{error\_theta} steiler skaliert und erreicht den Sättigungsbereich bereits bei kleineren Winkelabweichungen. Gleichzeitig werden \texttt{derror\_theta} und \texttt{output\_theta} reduziert, wodurch die maximale Drehgeschwindigkeit begrenzt und ein ruhigeres Regelverhalten erzielt wird. Abbildung~\ref{fig:skalierung_start_optimiert} verdeutlicht diese Anpassungen.
 
 \begin{figure}[H]
     \centering
@@ -366,6 +399,6 @@ Die Versuchsergebnisse zeigen, dass der entwickelte Fuzzy-Regler auch bei erhöh
 
 Die im Rahmen der Simulation ermittelten Reglerparameter stellten eine sehr gute Ausgangsbasis für die Inbetriebnahme des realen Systems dar. Dennoch zeigte sich, dass eine geringfügige Nachjustierung einzelner Skalierungsparameter erforderlich war. Der wichtigste Unterschied zwischen Simulation und realem System liegt in der Modelltreue. Während in der Simulation ausschließlich das kinematische Verhalten des Roboters berücksichtigt wird, treten im realen System zusätzlich dynamische Effekte wie Massenträgheit, Reibung, Radschlupf, mechanische Toleranzen sowie Messrauschen auf. Insbesondere im Bereich der Ablageposition spielt außerdem die vorhandene Federung eine wichtige Rolle. Um den Zielpunkt zuverlässig zu erreichen, muss der Roboter mit einer geringen Restgeschwindigkeit in die federnd gelagerte Position einfahren. Dieses Verhalten wird im verwendeten Simulationsmodell nicht berücksichtigt und machte daher eine Feinabstimmung der Parameter am realen System erforderlich. Insgesamt zeigte sich jedoch, dass die Simulation ihren Zweck erfüllt hat. 
 
-\section{Fazit und Ausblick}
+\section{Bewertung des Ergebniss}
 
 Im Rahmen dieser Arbeit wurde ein Fuzzy-Regler für einen omnidirektionalen Roboter entwickelt, simuliert und erfolgreich in die bestehende Robotersteuerung integriert. Ziel war es, eine einheitliche Reglerstruktur zu schaffen, die sowohl für Positionsfahrten als auch als Grundlage für zukünftige Vektorfahrten verwendet werden kann. Die Simulation ermöglichte eine automatische Bestimmung geeigneter Skalierungsparameter und zeigte sich als gut geeignet. Die anschließenden Fahrversuche zeigten, dass der Regler Zielpositionen und Zielorientierungen zuverlässig anfährt und auch bei engen Toleranzen ein stabiles Regelverhalten erreicht. Kleinere Anpassungen der Simulationsparameter waren aufgrund realer Einflüsse wie mechanischer Toleranzen und der Federung im Bereich der Ablageposition erforderlich, änderten jedoch nichts am grundsätzlichen Erfolg des entwickelten Regelungskonzepts. Besonders vorteilhaft erwiesen sich der modulare Aufbau des Reglers, die übersichtliche Regelbasis sowie die Möglichkeit, dieselbe Reglerstruktur sowohl für Positions- als auch für Vektorfahrten zu verwenden. Die Parametrierung erfolgt ausschließlich über wenige Skalierungsparameter und kann dadurch einfach an unterschiedliche Anforderungen angepasst werden. Insgesamt konnten die zu Beginn formulierten Ziele erreicht werden. Der entwickelte Fuzzy-Regler stellt eine robuste und gut nachvollziehbare Lösung für die Regelung des omnidirektionalen Roboters dar und bildet eine geeignete Grundlage für zukünftige Erweiterungen. Für zukünftige Arbeiten bietet sich insbesondere eine Erweiterung der Simulation um ein dynamisches Robotermodell an. Darüber hinaus könnten weitere Reglerparameter, beispielsweise die Zugehörigkeitsfunktionen oder die Regelbasis selbst, automatisch optimiert sowie unterschiedliche Fahrszenarien gleichzeitig zur Parametrierung herangezogen werden. Ebenso stellt die Umsetzung einer kontinuierlichen Vektorfahrt durch gleitende Zielpunkte einen vielversprechenden nächsten Entwicklungsschritt dar.
